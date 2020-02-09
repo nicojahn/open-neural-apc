@@ -114,8 +114,9 @@ def getSequenceLengths(input_list):
 def readData(label_directory, label_file, csv_directory, keep_noise=False, frame_hops=1):
     def readMetainfos(input_file):
         with open('%s'%(input_file), newline='') as f:
-            return list(csv.reader(f, delimiter=','))
-    # loads just the metainformation from a file (filename,in,out,seq_length)
+            return list(csv.reader(f, delimiter=','))[1:]
+
+    # loads just the metainformation from a file (columns: filename,in,out)
     metaInfos = readMetainfos('%s%s'%(label_directory,label_file))
     data, label = loader(csv_directory, frame_hops).load_file_from_list(metaInfos)
 
