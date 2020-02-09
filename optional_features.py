@@ -1,3 +1,6 @@
+# Copyright (c) 2020, Nico Jahn
+# All rights reserved.
+
 import numpy as np
 
 def createVideo(epoch,current_x,prediction,upper_bound,lower_bound):
