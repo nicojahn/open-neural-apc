@@ -1,0 +1,18 @@
+# The git runner uses 'nvidia/cuda:10.0-cudnn7-runtime-ubuntu18.04' as base image
+# A local folder is mounted to the git build folder in 'models/'.
+# The trained models are therefore saved as artifacts and aren't removed after a new CI/CD job
+
+variables:
+  GIT_CLEAN_FLAGS: -ffdx -e models/
+default:
+  before_script:
+    - apt update 
+    - apt upgrade -y
+    - apt install -y python3 python3-pip
+
+train:
+  script:
+    - pip3 install -r requirements.txt
+    - export TF_FORCE_GPU_ALLOW_GROWTH=true
+    - python3 main.py
+  timeout: 1 day
