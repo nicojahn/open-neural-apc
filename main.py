@@ -8,6 +8,9 @@ import datetime
 import time as t
 import pathlib
 
+import re
+import os
+
 from network import network
 from data_loader import loader as load
 
@@ -33,10 +36,10 @@ models_directory = './models/'
 training = True
 # if True would use the CUDNN LSTM (GPU only)
 # else uses CudnnCompatibleLSTMCell (CPU only)
-use_gpu = False
+use_gpu = True
 
 #max epochs or cost minimization
-max_epochs = 50
+max_epochs = 10000
 safe_steps = 5
 #1: (1-batch) --> stochastic gradient
 batchsize = 16
@@ -51,15 +54,17 @@ accuracy_error_niveau = 0.5 # A slack of 0.5 for the accuracy output (error is s
 jump_frames = 4 # not every frame of those sequences are used
 
 # verbose batch metrics
-verbose = True
+verbose = False
 
 # some optional features
 print_metrics = False
 create_video = False
 
 def createModelFolder():
-    subdir = datetime.datetime.now().strftime("%y%m%d_%H%M%S.%f")
-    subdir = subdir+'_%dx%d_%.5f_%d'%(hidden_layer,hidden_dims,lr,batchsize)
+    subdir = os.environ['CI_COMMIT_SHORT_SHA']
+    #subdir = datetime.datetime.now().strftime("%y%m%d_%H%M%S.%f")
+    subdir = subdir+datetime.datetime.now().strftime("_%y%m%d_%H%M%S")
+    #subdir = subdir+'_%dx%d_%.5f_%d'%(hidden_layer,hidden_dims,lr,batchsize)
     pathlib.Path(models_directory).mkdir(exist_ok=True)
     model_path = '%s%s/'%(models_directory,subdir)
     pathlib.Path(model_path).mkdir(exist_ok=False)
@@ -144,9 +149,6 @@ def createModel():
     
 
 def getCheckpoints(model_path):
-    import re
-    import os
-    
     # Function from https://gist.github.com/hhanh/1947923 for getting the epoch number of all models in the model_path
     def atoi(text):
         return int(text) if text.isdigit() else text

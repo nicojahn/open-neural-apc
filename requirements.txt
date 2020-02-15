@@ -1,7 +1,7 @@
-tensorflow==1.13.2
+tensorflow-gpu==1.13.2
 matplotlib
 numpy
-csv
+python-csv
 
 tabulate
 imageio
