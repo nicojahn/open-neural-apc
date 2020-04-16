@@ -2,12 +2,11 @@
     "data parameter":
     {
         "data directory": "./data/",
-        "training labels": "labels/",
-        "training csv": "csv/",
         "training label": "train.csv",
-        "validation labels": "labels_public/",
-        "validation csv": "csv_public/",
-        "validation label": "valid.csv"
+        "validation label": "valid.csv",
+        "input scaling factor": 256,
+        "sequence dtype" : "uint8",
+        "labels dtype" : "uint32"
     },
     
     "model parameter":
@@ -23,10 +22,15 @@
         "epochs": 10000,
         "safe steps": 5,
         "pretrain": false,
-        "batchsize": 16,
+        "batch size": 16,
         "learning rate": 0.001,
         "dropout rate": 0.2,
         "jump input frames": 4,
-        "accuracy error niveau": 0.5
+        "accuracy error niveau": 0.5,
+        "minimum concatenation": 4,
+        "maximum concatenation": 6,
+        "calculation dtype" : "float32",
+        "calculation epsilon" : 1e-7,
+        "aux scale" : 3
     }
 }

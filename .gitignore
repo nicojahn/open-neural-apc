@@ -1,6 +1,7 @@
 # custom
-data/csv/
-data/labels/
+data/training.dat
+data/training_meta.dat
+data/train.csv
 .DS_Store
 *.DS_Store
 

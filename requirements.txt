@@ -1,0 +1,7 @@
+tensorflow
+matplotlib
+numpy
+
+pillow
+imageio
+imageio-ffmpeg
