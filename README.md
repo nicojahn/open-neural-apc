@@ -19,7 +19,7 @@ BSD 3-Clause License
 * The main problem which was solved with this model was an end-to-end ML algorithm
 * It only needs single labels per sequences (e.g. count at the end of the sequences)
 * The model works efficiently and can process sequences of a variety of lengths
-    * dataset has typically 100s to multiple 1000s of images/sequence
+    * dataset has typically 100s to multiple 1000s of images per sequence
     * Uses 10 frames per second
 * With the loss function, a property of the data was exploited
     * The problem is the exponential decreasing distribution of the labels (many easy cases, few hard cases)
