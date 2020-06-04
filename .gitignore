@@ -1,9 +1,20 @@
-# custom
+# the data problem. Not able to share those with you guys...
 data/training.dat
 data/training_meta.dat
 data/train.csv
+
+# apple stuff
 .DS_Store
 *.DS_Store
+
+# keep video folder, but not the large videos (you can still upload the gifs)
+results/videos/*
+!results/videos/.keep
+
+# Don't put trained models under git versioning (but only the model which comes with it)
+models/*
+!models/model_10000.h5
+!models/model.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

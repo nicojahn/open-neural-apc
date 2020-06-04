@@ -14,7 +14,7 @@ class Preprocess():
     # prepare epoch
     def prepareIndices(self):
         indices = np.arange(len(self.sequence_list))
-        np.random.shuffle(indices)
+        if self.training: np.random.shuffle(indices)
         batches = []
         while(True):
             samples = []
@@ -105,6 +105,7 @@ class Preprocess():
         return np.concatenate(hit_mask)
 
     def prepareEpoch(self,training=True):
+        self.training = training
         indices = self.prepareIndices()
         # reverse left/right and forward/backward only during training (every epoch is a new permutation)
         if training:

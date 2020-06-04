@@ -3,11 +3,13 @@ import tensorflow.keras.backend as K
 from tensorflow.keras.models import model_from_json
 from tensorflow.keras.layers import Reshape, InputLayer, LSTM, Dense, LeakyReLU, Dropout
 import numpy as np
+import datetime
+import os
 
 class NeuralAPC():
     def __init__(self,*args,verbose=0,restored=0,**kwargs):
         self.model_parameter,self.training_parameter = args
-        self.model_path = "./models/"
+        self.model_path = "./models/%s/"%str(datetime.datetime.now()).replace(' ','_')
         self.verbose = verbose
         
         self.model = self.createNewModel()
@@ -26,7 +28,7 @@ class NeuralAPC():
         else:
             # set an epoch
             self.epoch = 0
-            self.model.optimizer = keras.optimizers.Adam(self.training_parameter['learning rate'])
+            self.model.optimizer = keras.optimizers.Adam(self.training_parameter['learning rate'],*self.training_parameter["optimizer parameter"])
             
             # helper for the loss
             self.zero = K.cast(0.,dtype=K.floatx())
@@ -38,6 +40,8 @@ class NeuralAPC():
         self.model.compile(loss=self.loss, optimizer=self.model.optimizer, metrics=[self.accuracy])
         
     def save(self):
+        #create model directory first
+        os.makedirs(self.model_path, exist_ok=True)
         # serialize model to JSON
         model_json = self.model.to_json()
         with open("%smodel.json"%(self.model_path), "w") as json_file:
@@ -46,13 +50,15 @@ class NeuralAPC():
         self.model.save_weights("%smodel_%d.h5"%(self.model_path,self.epoch))
         if self.verbose: print("Saved model to disk")
     
-    def loadModel(self,epoch=-1):
+    def loadModel(self,epoch=-1,model_path=None):
         if epoch < 0: epoch = self.epoch
+        else: self.epoch = epoch
+        if model_path is None: model_path = self.model_path
         # load json and create model
-        with open("%smodel.json"%(self.model_path), 'r') as json_file:
+        with open("%smodel.json"%(model_path), 'r') as json_file:
             model = model_from_json(json_file.read())
         # load weights into new model
-        model.load_weights("%smodel_%d.h5"%(self.model_path,epoch))
+        model.load_weights("%smodel_%d.h5"%(model_path,epoch))
         
         # due to an problem in the tf.keras framework a cudnn lstm is restored as cuda lstm (much slower)
         # a newly initialized model uses the cudnn implementation, but needs the right weights
@@ -109,7 +115,7 @@ class NeuralAPC():
     
     def loss_function(self,upper_bound,lower_bound,prediction):
         mask = K.cast(K.greater_equal(upper_bound,self.zero),dtype=K.floatx())
-        # main error to the label
+        # main error to the label (the predictions outside the bounding boxes)
         error = mask * (K.maximum(self.zero,prediction-upper_bound) +\
                             K.minimum(self.zero,prediction-lower_bound))
         # additional losses (independed from label)

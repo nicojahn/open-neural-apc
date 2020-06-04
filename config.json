@@ -4,7 +4,7 @@
         "data directory": "./data/",
         "training label": "train.csv",
         "validation label": "valid.csv",
-        "input scaling factor": 256,
+        "input scaling factor": 255,
         "sequence dtype" : "uint8",
         "labels dtype" : "uint32"
     },
@@ -23,7 +23,9 @@
         "safe steps": 5,
         "pretrain": false,
         "batch size": 16,
+        "restrict dataset size": 1500,
         "learning rate": 0.001,
+        "optimizer parameter": [0.9,0.999,1e-07],
         "dropout rate": 0.2,
         "jump input frames": 4,
         "accuracy error niveau": 0.5,

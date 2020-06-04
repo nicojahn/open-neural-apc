@@ -2,11 +2,12 @@
 # All rights reserved.
 
 import numpy as np
+from tqdm import tqdm
 
 def createVideo(epoch,batch_idx,sequence,prediction,upper_bound,lower_bound):
 
     from PIL import Image
-    import imageio
+    import cv2
     import matplotlib
     matplotlib.use("Agg")
 
@@ -16,9 +17,10 @@ def createVideo(epoch,batch_idx,sequence,prediction,upper_bound,lower_bound):
     sequence = np.squeeze(sequence)
     prediction = np.squeeze(prediction)
     upper_bound = np.squeeze(upper_bound)
-    lower_bound = np.squeeze(upper_bound)
-    
-    input_video = np.array(np.reshape(sequence,[-1,20,25])*255,dtype=np.uint8)
+    lower_bound = np.squeeze(lower_bound)
+
+    multiplier = 255/np.max(sequence)
+    input_video = np.array(np.reshape(sequence,[-1,20,25])*multiplier,dtype=np.uint8)
     
     # calculate the maximum height (y-values) of the plots
     prediction_max_in = max(prediction[:,0])
@@ -30,12 +32,12 @@ def createVideo(epoch,batch_idx,sequence,prediction,upper_bound,lower_bound):
     max_in = max(prediction_max_in,label_max_in)
     max_out = max(prediction_max_out,label_max_out)
     
-    # image buffer for the video
-    image_list = []
+    writer = None
     # for each frame create the following plot
-    for k,frame in enumerate(input_video):
+    for k,frame in tqdm(enumerate(input_video),desc='Video progress'):
         
         fig, axes  = plt.subplots(2,1)
+        plt.minorticks_on()
         # since saving all plots as images is memory intensive, someone can scale the plots here (smaller values loose details)
         fig.set_size_inches(10, 5)
         
@@ -67,9 +69,14 @@ def createVideo(epoch,batch_idx,sequence,prediction,upper_bound,lower_bound):
         spacing = 1
         axes[0].yaxis.set_minor_locator(MultipleLocator(spacing))
         axes[1].yaxis.set_minor_locator(MultipleLocator(spacing))
+        axes[0].yaxis.set_major_locator(MultipleLocator(spacing))
+        axes[1].yaxis.set_major_locator(MultipleLocator(spacing))
+        
         # Set grid to use minor tick locations.
         axes[0].grid(which = 'minor',axis='y',alpha=0.5)
         axes[1].grid(which = 'minor',axis='y',alpha=0.5)
+        axes[0].grid(which = 'major',axis='y',alpha=0.5)
+        axes[1].grid(which = 'major',axis='y',alpha=0.5)
         
         # clear unused space and draw it without showing a plot
         fig.tight_layout(pad=1)
@@ -86,11 +93,11 @@ def createVideo(epoch,batch_idx,sequence,prediction,upper_bound,lower_bound):
         other_image = np.stack((other_image,)*c, axis=-1)
         # combining plots and video
         image = np.concatenate([data,other_image],axis=1)
-        # save image to the videobuffer
-        image_list += [image]
+        
+        if k==0:
+            writer = cv2.VideoWriter('./results/videos/video%d_%d.avi'%(epoch,batch_idx),\
+                             cv2.VideoWriter_fourcc(*'MJPG'), 10, (image.shape[1],image.shape[0]))
+    
+        writer.write(image)    
         plt.close(fig)
-
-    # write the whole video at once (memory intense)
-    vid_writer = imageio.get_writer('results/videos/video%d_%d.mp4'%(epoch,batch_idx), fps=10, macro_block_size= None)
-    [vid_writer.append_data(elem) for elem in image_list]
-    vid_writer.close()
+    writer.release()
