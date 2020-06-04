@@ -90,7 +90,7 @@ def createVideo(epoch,batch_idx,sequence,prediction,upper_bound,lower_bound):
         image_list += [image]
         plt.close(fig)
 
-    # write the whole video at once (memory intensive)
-    vid_writer = imageio.get_writer('videos/video%d_%d.mp4'%(epoch,batch_idx), fps=10, macro_block_size= None)
+    # write the whole video at once (memory intense)
+    vid_writer = imageio.get_writer('results/videos/video%d_%d.mp4'%(epoch,batch_idx), fps=10, macro_block_size= None)
     [vid_writer.append_data(elem) for elem in image_list]
     vid_writer.close()
