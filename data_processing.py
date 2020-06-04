@@ -14,7 +14,8 @@ class Preprocess():
     # prepare epoch
     def prepareIndices(self):
         indices = np.arange(len(self.sequence_list))
-        if self.training: np.random.shuffle(indices)
+        if self.training:
+            np.random.shuffle(indices)
         batches = []
         while(True):
             samples = []

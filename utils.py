@@ -11,7 +11,8 @@ def loadConfig(verbose=1):
     training_parameter = config_data['training parameter']
 
     # show content of config
-    if verbose: print(json.dumps(config_data, indent=2, sort_keys=True))
+    if verbose:
+        print(json.dumps(config_data, indent=2, sort_keys=True))
         
     return data_parameter, model_parameter,training_parameter
 

@@ -1,4 +1,5 @@
 # open-neural-apc
+[![CodeFactor](https://www.codefactor.io/repository/github/nicojahn/open-neural-apc/badge)](https://www.codefactor.io/repository/github/nicojahn/open-neural-apc)
 
 ![neural-apc](./results/gifs/10000_7.gif)
 
