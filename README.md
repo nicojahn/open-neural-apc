@@ -39,9 +39,9 @@ BSD 3-Clause License
  * The y-axis the count
  * The black line on the top the label
   * Only label for the end of the sequence as upper bound for every intermediate frame
- * The red line is the current progress of the video
+ * The blue line is the current progress of the video
  * The green dashed line is just a helping projection of the current model count to the y-axis
- * The blue line is the **raw output** of the model
+ * The red line is the **raw output** of the model
  
 ![neural-apc](./results/gifs/10000_0.gif)
 
