@@ -69,7 +69,8 @@ class NeuralAPC():
         for idx,layer in enumerate(model.layers):
             self.model.layers[idx].set_weights(layer.get_weights())
         
-        if self.verbose: print("Loaded model from disk")
+        if self.verbose:
+            print("Loaded model from disk")
         self.compile()
         
     def createNewModel(self):

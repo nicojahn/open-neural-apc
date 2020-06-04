@@ -1,19 +1,14 @@
-This folder contains all labels and data used to train/test/validate the model.
-Otherwise it is not very interesting.
+This folder contains the dataset to train/validate/test the model.
 
-Some explanation to folders/files:
+Some explanation to the files:
 
-csv
-  not intended for the public (not my decision)
-csv_public
-  intended for the public (for testing and imagination how the data looks like)
-labels
-  not intended for the public (not my decision)
-labels_public
-  intended for the public (for testing and imagination how the data looks like)
-rename.py
-  renamed the original files into theire hashes ('anonymization')
-split.py
-  chooses randomly 15 files and creates new label files (train/valid)
-move_public_csv.py
-  moves the files which are dedicated for public access into correspondig folder
+* the data is saved in a binary format for efficient loading (using numpy memory-mapping)
+* no header or structure information included (partial loading of the files is possible)
+
+* validation.dat
+    * contains all validation sequences which are provided to the public
+* validation_meta.dat
+    * contains the sequence labels and lengths (in tuples of 3)
+    * first entry is the sequence length (to load from the validation.dat)
+    * next 2 entries are the labels (only for the last fram of each sequence)
+* The other files follow the same naming scheme
