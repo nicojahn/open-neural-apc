@@ -49,21 +49,16 @@ In short:
  * We just have a label for the last frame of the video, but since the optimal counting function of each category is non-decreasing, we have a lower and upper bound (via the label)
  * We just learn from this bounding box the green line
 
-<object data="https://github.com/nicojahn/open-neural-apc/blob/master/label_problem.pdf" type="application/pdf" width="750px" height="750px">
-    <embed src="https://github.com/nicojahn/open-neural-apc/blob/master/label_problem.pdf" type="application/pdf">
-        <p>This browser does not support PDFs. Please download the PDF to view it: <a href="https://github.com/nicojahn/open-neural-apc/blob/master/label_problem.pdf">Download PDF</a>.</p>
-    </embed>
-</object>
+
+![label problem](label_problem.png)
+
+
 
 ## You told the loss function was special?
 In my honest opinion, the model is rather boring, it was planned just as a basic model. You can see it at the bottom of this page (Visualized with <a href="https://github.com/lutzroeder/netron" target="_blank" rel="noopener noreferrer">Netron</a> by <a href="https://github.com/lutzroeder" target="_blank" rel="noopener noreferrer">Lutz Roeder</a>). The main selling point, the loss function, was chosen to avoid a weighting of classes. As previously mentioned the labels are (as usual) not well distributed. More than 75% of the >5000 labels (of ~2500 sequences) contained only 0,1 or 2 passengers. Luckily we can produce larger labels when concatenating sequences and therefore get larger counts. The drawback is the computational complexity when preparing batches and computing through the sequences.<br>
 Visual representation of the concatenation and a synthetic prediction is shown below. Since the bounding boxes are the only knowledge we have, we can't apply a loss as long as the prediction is inside the boundaries. Only if the model predicts values outside the valid range or for the last frame of each sequence we can compute an error. For the last frame, we calculate an absolute loss. These are the only losses that are applied and rely on the labels. Auxiallry losses were introduced by myself in 2020 in this repository.
 
-<object data="https://github.com/nicojahn/open-neural-apc/blob/master/concatenate.pdf" type="application/pdf" width="750px" height="750px">
-    <embed src="https://github.com/nicojahn/open-neural-apc/blob/master/concatenate.pdf" type="application/pdf">
-        <p>This browser does not support PDFs. Please download the PDF to view it: <a href="https://github.com/nicojahn/open-neural-apc/blob/master/concatenate.pdf">Download PDF</a>.</p>
-    </embed>
-</object>
+![concatenate](concatenate.png)
 
 ### Basic model
 ![NN model](./model.json.svg)
