@@ -29,8 +29,8 @@
         "dropout rate": 0.2,
         "jump input frames": 4,
         "accuracy error niveau": 0.5,
-        "minimum concatenation": 4,
-        "maximum concatenation": 6,
+        "minimum concatenation": 5,
+        "maximum concatenation": 5,
         "calculation dtype" : "float32",
         "calculation epsilon" : 1e-7,
         "aux scale" : 3
