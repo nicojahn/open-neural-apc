@@ -1,7 +1,6 @@
-import json
-
 # load model config
 def loadConfig(verbose=1):
+    import json
     with open('config.json', 'r') as config_file:
         config_data = json.load(config_file)
 
@@ -16,9 +15,8 @@ def loadConfig(verbose=1):
         
     return data_parameter, model_parameter,training_parameter
 
-import tensorflow as tf
-
 def allow_growth():
+    import tensorflow as tf
     # Copied from: https://tensorflow.google.cn/guide/gpu?hl=en#limiting_gpu_memory_growth
     gpus = tf.config.experimental.list_physical_devices('GPU')
     if gpus:
