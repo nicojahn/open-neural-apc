@@ -2,6 +2,9 @@ This folder contains the dataset to train/validate/test the model.
 
 Some explanation to the files:
 
+* valid.csv
+    * kept just as reference for the data conversion, how the labels file should look like 
+
 * the data is saved in a binary format for efficient loading (using numpy memory-mapping)
 * no header or structure information included (partial loading of the files is possible)
 
