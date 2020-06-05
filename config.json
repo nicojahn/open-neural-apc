@@ -26,6 +26,7 @@
         "restrict dataset size": 1500,
         "learning rate": 0.001,
         "optimizer parameter": [0.9,0.999,1e-07],
+        "optimizer clip parameter": [1.0,2.0],
         "dropout rate": 0.2,
         "jump input frames": 4,
         "accuracy error niveau": 0.5,

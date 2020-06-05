@@ -1,7 +1,10 @@
 from tensorflow import keras as keras
-import tensorflow.keras.backend as K
 from tensorflow.keras.models import model_from_json
 from tensorflow.keras.layers import Reshape, InputLayer, LSTM, Dense, LeakyReLU, Dropout
+
+import tensorflow as tf
+import tensorflow.keras.backend as K
+
 import numpy as np
 import datetime
 import os
@@ -28,7 +31,10 @@ class NeuralAPC():
         else:
             # set an epoch
             self.epoch = 0
-            self.model.optimizer = keras.optimizers.Adam(self.training_parameter['learning rate'],*self.training_parameter["optimizer parameter"])
+            value, norm = self.training_parameter["optimizer clip parameter"]
+            self.model.optimizer = keras.optimizers.Adam(self.training_parameter['learning rate'],\
+                                                         *self.training_parameter["optimizer parameter"],\
+                                                          clipvalue = value, clipnorm = norm)
             
             # helper for the loss
             self.zero = K.cast(0.,dtype=K.floatx())
@@ -96,7 +102,7 @@ class NeuralAPC():
     def AddOutput(self):
         self.model.add(Dense(self.model_parameter['output dimensions'],name='OutputLayer'))
         self.model.add(LeakyReLU(-1,name='OutputActivation'))
-        
+    
     def aux_losses(self,mask,prediction):
         # try to predict close to integer values (error = distance to closest integer)
         integer_error = mask * (prediction-K.round(prediction))
