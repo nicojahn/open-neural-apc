@@ -63,11 +63,11 @@ def safeOldDataToMemMap(files_dict,labels,mode,data_folder,sequence_dtype,labels
     labels_bytes = np.dtype(labels_dtype).itemsize
     
     def writeData(data,meta_data,old_data_length,old_meta_length):
-        data_mapped = np.memmap(f'{mode}.dat',sequence_dtype,'r+',shape=(data_to_write),offset=data_bytes*old_data_length)
+        data_mapped = np.memmap(f'{mode}.dat',sequence_dtype,'r+',shape=(data.shape[0]),offset=data_bytes*old_data_length)
         data_mapped[:] = data
         del data_mapped
         
-        meta_mapped = np.memmap(f'{mode}_meta.dat',labels_dtype,'r+',shape=(meta_data_to_write),offset=labels_bytes*old_meta_length)
+        meta_mapped = np.memmap(f'{mode}_meta.dat',labels_dtype,'r+',shape=(meta_data.shape[0]),offset=labels_bytes*old_meta_length)
         meta_mapped[:] = meta_data
         del meta_mapped
     
@@ -89,13 +89,10 @@ def safeOldDataToMemMap(files_dict,labels,mode,data_folder,sequence_dtype,labels
         data = data.flatten()
         meta_data = meta_data.flatten()
        
-        data_to_write = data.shape[0]    
-        meta_data_to_write = meta_data.shape[0]
-        
         writeData(data,meta_data,old_data_length,old_meta_length)
 
-        old_data_length+=data_to_write
-        old_meta_length+=meta_data_to_write
+        old_data_length+=data.shape[0]
+        old_meta_length+=meta_data.shape[0]
 
 if __name__=='__main__':
     # just do it for all the files/modes (training/validation/testing)
