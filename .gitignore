@@ -15,6 +15,7 @@ results/videos/*
 models/*
 !models/model_10000.h5
 !models/model.json
+!models/config.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

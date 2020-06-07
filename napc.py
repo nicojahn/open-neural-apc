@@ -31,10 +31,17 @@ class NeuralAPC():
         else:
             # set an epoch
             self.epoch = 0
-            value, norm = self.training_parameter["optimizer clip parameter"]
+
+            additions = dict()
+            if "optimizer clip parameter" in list(self.training_parameter.keys()): 
+                value, norm = self.training_parameter["optimizer clip parameter"]
+                # you can utilize the parameter by using:
+                # keras.optimizers ... ,clipvalue = value, clipnorm = norm)
+                additions["clipvalue"] = value
+                additions["clipnorm"] = norm
             self.model.optimizer = keras.optimizers.Adam(self.training_parameter['learning rate'],\
                                                          *self.training_parameter["optimizer parameter"],\
-                                                          clipvalue = value, clipnorm = norm)
+                                                         *additions)
             
             # helper for the loss
             self.zero = K.cast(0.,dtype=K.floatx())
