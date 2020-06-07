@@ -39,9 +39,10 @@ class NeuralAPC():
                 # keras.optimizers ... ,clipvalue = value, clipnorm = norm)
                 additions["clipvalue"] = value
                 additions["clipnorm"] = norm
+                
             self.model.optimizer = keras.optimizers.Adam(self.training_parameter['learning rate'],\
                                                          *self.training_parameter["optimizer parameter"],\
-                                                         *additions)
+                                                         **additions)
             
             # helper for the loss
             self.zero = K.cast(0.,dtype=K.floatx())

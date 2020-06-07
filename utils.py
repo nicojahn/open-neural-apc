@@ -1,7 +1,7 @@
 # load model config
-def loadConfig(verbose=1):
+def loadConfig(config_path='config.json',verbose=1):
     import json
-    with open('config.json', 'r') as config_file:
+    with open(config_path, 'r') as config_file:
         config_data = json.load(config_file)
 
     # extract parameter classes
