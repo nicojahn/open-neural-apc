@@ -33,7 +33,7 @@ class NeuralAPC():
             self.epoch = 0
 
             additions = dict()
-            if "optimizer clip parameter" in list(self.training_parameter.keys()): 
+            if "optimizer clip parameter" in list(self.training_parameter.keys()) and not 'float16' in self.training_parameter["calculation dtype"]: 
                 value, norm = self.training_parameter["optimizer clip parameter"]
                 # you can utilize the parameter by using:
                 # keras.optimizers ... ,clipvalue = value, clipnorm = norm)
@@ -145,11 +145,13 @@ class NeuralAPC():
         output_dimensions = self.model_parameter['output dimensions']
         upper_bound = K.cast(y_true[:,:,:output_dimensions],dtype=K.floatx())
         lower_bound = K.cast(y_true[:,:,output_dimensions:2*output_dimensions],dtype=K.floatx())
+        y_pred = K.cast(y_pred,dtype=K.floatx())
         return K.mean(self.loss_function(upper_bound,lower_bound,y_pred),axis=0,keepdims=True)
 
     def accuracy(self,y_true, y_pred):
         output_dimensions = self.model_parameter['output dimensions']
         upper_bound = K.cast(y_true[:,:,:output_dimensions],dtype=K.floatx())
+        y_pred = K.cast(y_pred,dtype=K.floatx())
 
         mask = K.cast(K.greater_equal(upper_bound,self.zero),dtype=K.floatx())
         accuracy_mask = K.cast(y_true[:,:,2*output_dimensions:],dtype=K.floatx())
