@@ -3,6 +3,8 @@
 
 import numpy as np
 from tqdm import tqdm
+from matplotlib import pyplot as plt
+import tensorflow as tf
 
 def createVideo(epoch,batch_idx,sequence,prediction,upper_bound,lower_bound):
 
@@ -97,7 +99,45 @@ def createVideo(epoch,batch_idx,sequence,prediction,upper_bound,lower_bound):
         if k==0:
             writer = cv2.VideoWriter('./results/videos/video%d_%d.avi'%(epoch,batch_idx),\
                              cv2.VideoWriter_fourcc(*'MJPG'), 10, (image.shape[1],image.shape[0]))
-    
-        writer.write(image)    
+        writer.write(image)
         plt.close(fig)
     writer.release()
+
+class customPlot(tf.keras.callbacks.Callback):
+    def __init__(self,preprocessor,napc,plot_freq=1000):
+        self.plot_freq = plot_freq
+        self.preprocessor = preprocessor
+        self.napc = napc
+        if self.napc.is_distributed:
+            raise ValueError("Callback 'customPlot' is currently unsupported when using a distribution strategy.")
+    def on_epoch_end(self, epoch, logs=None):
+        if epoch%self.plot_freq==0:
+            # draw a random sample from all sequences in the preprocessor
+            index = np.random.randint(len(self.preprocessor.sequence_list))
+            # simulate a epoch with only 1 random sample
+            simulated_indices = [[[index]]]
+            x = self.preprocessor.epochWrapper(simulated_indices,self.preprocessor.sequenceEpoch)
+            label_mask =  self.preprocessor.epochWrapper(simulated_indices,self.preprocessor.labelEpoch)
+            accuracy_mask = self.preprocessor.epochWrapper(simulated_indices,self.preprocessor.accuracyEpoch)
+            y = self.preprocessor.combineMasks(label_mask,accuracy_mask)
+
+            # draw the only batch
+            x = np.asarray(x)[0,:,:,:]
+            y = np.asarray(y)[0,:,:,:]
+
+            # process the simulated batch
+            prediction = self.napc.model.predict_on_batch(x)
+            error = self.napc.loss_function(y[:,:,:2],y[:,:,2:4],prediction)
+
+            # prepare plot
+            num_plots = 2
+            fig, ax = plt.subplots(1,num_plots,figsize=(14,3), dpi=80)
+            fig.suptitle('Predictions in/out')
+            for idx in range(num_plots):
+                ax[idx].plot(y[0,:,idx],label='max')
+                ax[idx].plot(y[0,:,idx+2],label='min')
+                ax[idx].plot(y[0,:,4],label='end')
+                ax[idx].plot(prediction[0,:,idx],label='prediction')
+                ax[idx].plot(error[0,:,idx],label='error')
+                ax[idx].legend()
+            plt.show(fig)
