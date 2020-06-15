@@ -105,6 +105,12 @@ class Preprocess():
             hit_mask[-1][-1] = 1
         return np.concatenate(hit_mask)
 
+    def combineMasks(self,label_mask,accuracy_mask):
+        masks = []
+        for l_mask,a_mask in list(zip(label_mask,accuracy_mask)):
+            masks += [np.concatenate([l_mask,a_mask],axis=-1)]
+        return masks
+
     def prepareEpoch(self,training=True):
         self.training = training
         indices = self.prepareIndices()
@@ -124,8 +130,4 @@ class Preprocess():
         label_mask =  padEpoch(self.epochWrapper(indices,self.labelEpoch))
         accuracy_mask = padEpoch(self.epochWrapper(indices,self.accuracyEpoch))
 
-        label = []
-        for idx,elem in enumerate(label_mask):
-            label += [np.concatenate([elem, accuracy_mask[idx]],axis=-1)]
-
-        return video_sequences,label
+        return video_sequences, self.combineMasks(label_mask,accuracy_mask)
