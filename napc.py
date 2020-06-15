@@ -24,16 +24,22 @@ class NeuralAPC():
         if self.verbose:
             # print the model properties
             self.model.summary()
-        
+
+        # Catching the: ValueError: Gradient clipping in the optimizer (by setting clipnorm or clipvalue) is currently unsupported when using a distribution strategy.
+        self.is_distributed = tf.distribute.in_cross_replica_context()
+
         if restored:
             # load weights, optimizers, losses etc.
             pass
         else:
             # set an epoch
             self.epoch = 0
-
+            
+            clip_gradient = "optimizer clip parameter" in list(self.training_parameter.keys())
+            is_half_precision = 'float16' in self.training_parameter["calculation dtype"]
+            
             additions = dict()
-            if "optimizer clip parameter" in list(self.training_parameter.keys()) and not 'float16' in self.training_parameter["calculation dtype"]: 
+            if clip_gradient and not is_half_precision and not self.is_distributed: 
                 value, norm = self.training_parameter["optimizer clip parameter"]
                 # you can utilize the parameter by using:
                 # keras.optimizers ... ,clipvalue = value, clipnorm = norm)
@@ -161,3 +167,10 @@ class NeuralAPC():
         error_with_slack = K.cast(K.less_equal(error_with_slack,self.zero),dtype=K.floatx())
         # number of right predicted sequences divided by count of sequences
         return K.sum(accuracy_mask*error_with_slack) / K.sum(accuracy_mask)
+
+    class IncreaseEpochCustom(tf.keras.callbacks.Callback):
+        def __init__(self,napc):
+            self.napc = napc
+        def on_epoch_end(self, epoch, logs=None):
+            # Since Keras Progbar starts counting with 1, I have to add here 1 
+            self.napc.epoch = epoch+1
