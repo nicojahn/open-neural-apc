@@ -2,27 +2,25 @@
     "data parameter":
     {
         "data directory": "./data/",
-        "training label": "train.csv",
-        "validation label": "valid.csv",
         "input scaling factor": 255,
         "sequence dtype" : "uint8",
         "labels dtype" : "uint32"
     },
-    
+
     "model parameter":
     {
         "input dimensions": [20,25],
-        "lstm width": 50,
+        "lstm width": 64,
         "lstm depth": 5,
         "output dimensions": 2
     },
 
     "training parameter":
     {
-        "epochs": 10000,
+        "epochs": 5000,
         "safe steps": 5,
         "pretrain": false,
-        "batch size": 16,
+        "batch size": 32,
         "restrict dataset size": 1500,
         "learning rate": 0.001,
         "optimizer parameter": [0.9,0.999,1e-07],
@@ -34,6 +32,7 @@
         "maximum concatenation": 5,
         "calculation dtype" : "float32",
         "calculation epsilon" : 1e-7,
-        "aux scale" : 3
+        "aux scale" : 3,
+        "v1RNN" : false
     }
 }

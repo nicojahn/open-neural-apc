@@ -1,6 +1,6 @@
 from tensorflow import keras as keras
 from tensorflow.keras.models import model_from_json
-from tensorflow.keras.layers import Reshape, InputLayer, LSTM, Dense, LeakyReLU, Dropout
+from tensorflow.keras.layers import Reshape, InputLayer, Dense, LeakyReLU, Dropout
 
 import tensorflow as tf
 import tensorflow.keras.backend as K
@@ -14,6 +14,12 @@ class NeuralAPC():
         self.model_parameter,self.training_parameter = args
         self.model_path = "./models/%s/"%str(datetime.datetime.now()).replace(' ','_')
         self.verbose = verbose
+        
+        # Doing this on purpose. The old LSTM implementation was faster than the new one
+        self.v1RNN = False
+        if 'v1RNN' in list(self.training_parameter.keys()):
+            if self.training_parameter['v1RNN']:
+                self.v1RNN = True
         
         self.model = self.createNewModel()
         # assemble network
@@ -29,7 +35,7 @@ class NeuralAPC():
         self.is_distributed = tf.distribute.in_cross_replica_context()
 
         if restored:
-            # load weights, optimizers, losses etc.
+            # TODO: load weights, optimizers, losses etc.
             pass
         else:
             # set an epoch
@@ -55,7 +61,7 @@ class NeuralAPC():
             self.one = K.cast(1.,dtype=K.floatx())
             self.aux_scale = K.cast(self.training_parameter['aux scale'],dtype=K.floatx())
             self.slack = K.cast(self.training_parameter['accuracy error niveau'],dtype=K.floatx())
-    
+
     def compile(self):
         self.model.compile(loss=self.loss, optimizer=self.model.optimizer, metrics=[self.accuracy])
         
@@ -67,7 +73,7 @@ class NeuralAPC():
         with open("%smodel.json"%(self.model_path), "w") as json_file:
             json_file.write(model_json)
         # serialize weights to HDF5
-        self.model.save_weights("%smodel_%d.h5"%(self.model_path,self.epoch))
+        self.model.save_weights("%sweights.%05d.hdf5"%(self.model_path,self.epoch))
         if self.verbose:
             print("Saved model to disk")
     
@@ -82,7 +88,7 @@ class NeuralAPC():
         with open("%smodel.json"%(model_path), 'r') as json_file:
             model = model_from_json(json_file.read())
         # load weights into new model
-        model.load_weights("%smodel_%d.h5"%(model_path,epoch))
+        model.load_weights("%sweights.%05d.hdf5"%(model_path,epoch))
         
         # due to an problem in the tf.keras framework a cudnn lstm is restored as cuda lstm (much slower)
         # a newly initialized model uses the cudnn implementation, but needs the right weights
@@ -109,8 +115,14 @@ class NeuralAPC():
     # the core network based on lstm
     def AddCore(self):
         for idx in range(self.model_parameter['lstm depth']):
-            self.model.add(LSTM(units=self.model_parameter['lstm width'],return_sequences=True,\
-                            dropout=self.training_parameter['dropout rate'],name='CoreLayer%d'%idx))
+            if self.v1RNN:
+                from tensorflow.compat.v1.keras.layers import CuDNNLSTM as LSTM
+                self.model.add(LSTM(units=self.model_parameter['lstm width'],return_sequences=True,name='CoreLayer%d'%idx))
+                #self.model.add(Dropout(self.training_parameter['dropout rate'],name='LSTMDropoutLayer%d'%idx))
+            else:
+                from tensorflow.keras.layers import LSTM
+                self.model.add(LSTM(units=self.model_parameter['lstm width'],return_sequences=True, \
+                                    dropout=self.training_parameter['dropout rate'],name='CoreLayer%d'%idx))
 
     # the output layer just reducing the dimensionality to the regression output
     def AddOutput(self):
@@ -174,3 +186,13 @@ class NeuralAPC():
         def on_epoch_end(self, epoch, logs=None):
             # Since Keras Progbar starts counting with 1, I have to add here 1 
             self.napc.epoch = epoch+1
+
+    # Tensorflow Keras ModelCheckpoint has no 'period' argument anymore
+    # Therefore, I'm doing it on my own
+    class SaveEveryNthEpochCustom(tf.keras.callbacks.Callback):
+        def __init__(self,napc,save_steps):
+            self.napc = napc
+            self.save_steps = save_steps
+        def on_epoch_end(self, epoch, logs=None):
+            if self.napc.epoch%self.save_steps == 0:
+                self.napc.save()
