@@ -16,6 +16,7 @@ models/*
 !models/model_10000.h5
 !models/model.json
 !models/config.json
+!models/tensorboard_example*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
