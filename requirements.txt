@@ -1,6 +1,3 @@
-### uncomment if you don't use the docker environment or have tf already installed
-### in the latest versions the packages tensorflow and tensorflow-gpu are the same
-# tensorflow
 matplotlib
-numpy
 tqdm
+tensorflow
