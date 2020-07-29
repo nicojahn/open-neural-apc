@@ -17,6 +17,7 @@ models/*
 !models/model.json
 !models/config.json
 !models/tensorboard_example*
+!models/model.tflite
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
