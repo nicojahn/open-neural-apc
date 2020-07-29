@@ -13,7 +13,7 @@ results/videos/*
 
 # Don't put trained models under git versioning (but only the model which comes with it)
 models/*
-!models/model_10000.h5
+!models/weights.10000.hdf5
 !models/model.json
 !models/config.json
 !models/tensorboard_example*
