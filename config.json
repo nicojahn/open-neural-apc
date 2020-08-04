@@ -33,6 +33,6 @@
         "calculation dtype" : "float16",
         "calculation epsilon" : 1e-7,
         "aux scale" : 3,
-        "v1RNN" : true
+        "v1RNN" : false
     }
 }
