@@ -52,7 +52,16 @@ def createNewMemmapFiles(mode,sequence_dtype,labels_dtype):
     labels = np.memmap(f'{mode}_meta.dat',labels_dtype,'w+',shape=(1))
     del data
     del labels
-    
+
+# random noise input X with random labels y from 0 to 10
+def getDummyData(model_parameter,training_parameter,sequence_dtype,labels_dtype):
+    import numpy as np
+    return np.random.random((training_parameter["batch size"], \
+                             int(2000/training_parameter["jump input frames"]), \
+                             *model_parameter["input dimensions"])).astype(sequence_dtype), \
+             np.round(np.random.random((training_parameter["batch size"], \
+                             model_parameter["output dimensions"]))*10).astype(labels_dtype)
+
 # The convert process: reads the old data and safes it a new files
 def safeOldDataToMemMap(files_dict,labels,mode,data_folder,sequence_dtype,labels_dtype):
     import numpy as np
