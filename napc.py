@@ -72,10 +72,14 @@ class NeuralAPC():
         model_json = self.model.to_json()
         with open("%smodel.json"%(self.model_path), "w") as json_file:
             json_file.write(model_json)
-        # serialize weights to HDF5
-        self.model.save_weights("%sweights.%05d.hdf5"%(self.model_path,self.epoch))
-        if self.verbose:
-            print("Saved model to disk")
+        try:
+            # serialize weights to HDF5
+            self.model.save_weights("%sweights.%05d.hdf5"%(self.model_path,self.epoch))
+            if self.verbose:
+                print("Saved model to disk")
+        except RuntimeError:
+            if self.verbose:
+                print("Couldn't save model to disk")
     
     def loadModel(self,epoch=-1,model_path=None):
         if epoch < 0:
