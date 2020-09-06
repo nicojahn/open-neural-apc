@@ -6,7 +6,7 @@ from tqdm import tqdm
 from matplotlib import pyplot as plt
 import tensorflow as tf
 
-def createVideo(epoch,batch_idx,sequence,prediction,upper_bound,lower_bound):
+def createVideo(epoch,batch_idx,sequence,prediction,upper_bound,lower_bound,dpi=300):
 
     from PIL import Image
     import cv2
@@ -38,7 +38,7 @@ def createVideo(epoch,batch_idx,sequence,prediction,upper_bound,lower_bound):
     # for each frame create the following plot
     for k,frame in tqdm(enumerate(input_video),desc='Video progress'):
         
-        fig, axes  = plt.subplots(2,1)
+        fig, axes  = plt.subplots(2,1, dpi=dpi)
         plt.minorticks_on()
         # since saving all plots as images is memory intensive, someone can scale the plots here (smaller values loose details)
         fig.set_size_inches(10, 5)
@@ -79,6 +79,9 @@ def createVideo(epoch,batch_idx,sequence,prediction,upper_bound,lower_bound):
         axes[1].grid(which = 'minor',axis='y',alpha=0.5)
         axes[0].grid(which = 'major',axis='y',alpha=0.5)
         axes[1].grid(which = 'major',axis='y',alpha=0.5)
+        
+        # Adding legend
+        plt.legend()
         
         # clear unused space and draw it without showing a plot
         fig.tight_layout(pad=1)
@@ -121,13 +124,15 @@ class customPlot(tf.keras.callbacks.Callback):
             accuracy_mask = self.preprocessor.epochWrapper(simulated_indices,self.preprocessor.accuracyEpoch)
             y = self.preprocessor.combineMasks(label_mask,accuracy_mask)
 
-            # draw the only batch
-            x = np.asarray(x)[0,:,:,:]
-            y = np.asarray(y)[0,:,:,:]
+            # draw the first batch (since we use just 1 sample, there's also just 1)
+            x = np.asarray(x[0])
+            y = np.asarray(y[0])
 
             # process the simulated batch
             prediction = self.napc.model.predict_on_batch(x)
-            error = self.napc.loss_function(y[:,:,:2],y[:,:,2:4],prediction)
+            lower_bound = y[:,:,:2]
+            upper_bound = y[:,:,2:4]
+            error = self.napc.loss_function(lower_bound,upper_bound,prediction)
 
             # prepare plot
             num_plots = 2
