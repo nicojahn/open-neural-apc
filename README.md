@@ -16,13 +16,13 @@ BSD 3-Clause License
 * Memory-mapped files which contain the sequences
     * Provides faster access and more efficient memory handling compared to CSV/image files
 * Configuration parser and close to complete parameterized code
-* A visualization tool, for investigation
+* A visualization tool for investigation
 
 ## What to expect from such a model?
 * The main problem which was solved with this model was an end-to-end ML algorithm
 * It only needs single labels per sequences (e.g. count at the end of the sequences)
 * The model works efficiently and can process sequences of a variety of lengths
-    * dataset has typically 100s to multiple 1000s of images per sequence
+    * Dataset has typically 100s to multiple 1000s of images per sequence
     * Uses 10 frames per second
 * With the loss function, a property of the data was exploited
     * The problem is the exponential decreasing distribution of the labels (many easy cases, few hard cases)
@@ -35,20 +35,21 @@ BSD 3-Clause License
 * The right side contains the sequence which the model receives as input
     * Top-Down view of a depth-sensing sensor (20x25 pixel resolution)
     * Noisy sequence
-    * The door is located on the bottom
-* On the left half of the video, the neural-apc is shown in action
-    * The top plot is the alighting passengers, bottom the boarding ones
+    * The door is located on the bottom of the frames
+* On the left side of the video, the neural-apc is shown in action
+    * The top plot are the alighting passengers, bottom the boarding ones
     * The x-axis resembles the number of frames
     * The y-axis the count
-    * The black line on the top the label
+    * The red dashed line on the top
         * Only label for the end of the sequence as upper bound for every intermediate frame
-    * The blue line is the current progress of the video
-    * The green dashed line is just a helping projection of the current model count to the y-axis
-    * The red line is the **raw output** of the model
+    * The blue dashed line on the bottom which raises in the end is the lower bound 
+    * The gray line is the current progress of the video
+    * The gray dashed line is just a helping projection of the current model count to the y-axis
+    * The green line is the **raw output** of the model
  
 ![neural-apc](./results/gifs/10000_0.gif)
 
-You can find more GIFs <a href="./results/gifs/" target="_blank" rel="noopener noreferrer">here</a>.
+You can find more GIFs of the validation sequences <a href="./results/gifs/" target="_blank" rel="noopener noreferrer">here</a>.
 
 ## What do the labels look like?
 In short:
