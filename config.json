@@ -12,7 +12,9 @@
         "input dimensions": [20,25],
         "lstm width": 64,
         "lstm depth": 5,
-        "output dimensions": 2
+        "output dimensions": 2,
+        "bidirectional": false,
+        "merge_mode": "sum"
     },
 
     "training parameter":

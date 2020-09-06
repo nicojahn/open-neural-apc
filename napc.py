@@ -1,6 +1,6 @@
 from tensorflow import keras as keras
 from tensorflow.keras.models import model_from_json
-from tensorflow.keras.layers import Reshape, InputLayer, Dense, LeakyReLU, Dropout
+from tensorflow.keras.layers import Reshape, InputLayer, Dense, LeakyReLU, Dropout, Bidirectional
 
 import tensorflow as tf
 import tensorflow.keras.backend as K
@@ -45,7 +45,8 @@ class NeuralAPC():
             is_half_precision = 'float16' in self.training_parameter["calculation dtype"]
             
             additions = dict()
-            if clip_gradient and not is_half_precision and not self.is_distributed: 
+            if clip_gradient and self.training_parameter["optimizer clip parameter"] is not None \
+                                and not is_half_precision and not self.is_distributed: 
                 value, norm = self.training_parameter["optimizer clip parameter"]
                 # you can utilize the parameter by using:
                 # keras.optimizers ... ,clipvalue = value, clipnorm = norm)
@@ -121,16 +122,24 @@ class NeuralAPC():
         for idx in range(self.model_parameter['lstm depth']):
             if self.v1RNN:
                 from tensorflow.compat.v1.keras.layers import CuDNNLSTM as LSTM
-                self.model.add(LSTM(units=self.model_parameter['lstm width'],return_sequences=True,name='CoreLayer%d'%idx))
+                lstm = LSTM(units=self.model_parameter['lstm width'],return_sequences=True,name='CoreLayer%d'%idx)
                 #self.model.add(Dropout(self.training_parameter['dropout rate'],name='LSTMDropoutLayer%d'%idx))
             else:
                 from tensorflow.keras.layers import LSTM
-                self.model.add(LSTM(units=self.model_parameter['lstm width'],return_sequences=True, \
-                                    dropout=self.training_parameter['dropout rate'],name='CoreLayer%d'%idx))
+                lstm = LSTM(units=self.model_parameter['lstm width'],return_sequences=True, \
+                                    dropout=self.training_parameter['dropout rate'],name='CoreLayer%d'%idx)
+            
+            if 'bidirectional' in list(self.model_parameter.keys()):
+                merge_mode = 'concat'
+                if 'merge_mode' in list(self.model_parameter.keys()):
+                    merge_mode = self.model_parameter['merge_mode']
+                if self.model_parameter['bidirectional']:
+                    lstm = Bidirectional(lstm,merge_mode=merge_mode)
+            self.model.add(lstm)
 
     # the output layer just reducing the dimensionality to the regression output
     def AddOutput(self):
-        self.model.add(Dense(self.model_parameter['output dimensions'],name='OutputLayer'))
+        self.model.add(Dense(self.model_parameter['output dimensions'],use_bias=True,name='OutputLayer'))
         self.model.add(LeakyReLU(-1,name='OutputActivation'))
     
     def aux_losses(self,mask,prediction):
