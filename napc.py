@@ -141,7 +141,7 @@ class NeuralAPC():
     def AddOutput(self):
         self.model.add(Dense(self.model_parameter['output dimensions'],use_bias=True,name='OutputLayer'))
         self.model.add(LeakyReLU(-1,name='OutputActivation'))
-    
+
     def aux_losses(self,mask,prediction):
         # try to predict close to integer values (error = distance to closest integer)
         integer_error = mask * (prediction-K.round(prediction))
@@ -200,7 +200,7 @@ class NeuralAPC():
             # Since Keras Progbar starts counting with 1, I have to add here 1 
             self.napc.epoch = epoch+1
 
-    # Tensorflow Keras ModelCheckpoint has no 'period' argument anymore
+    # Tensorflow Keras ModelCheckpoint argument 'period' is deprecated
     # Therefore, I'm doing it on my own
     class SaveEveryNthEpochCustom(tf.keras.callbacks.Callback):
         def __init__(self,napc,save_steps):

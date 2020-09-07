@@ -92,26 +92,33 @@ def createVideo(epoch,batch_idx,sequence,prediction,upper_bound,lower_bound,dpi=
     writer.release()
 
 class customPlot(tf.keras.callbacks.Callback):
-    def __init__(self,preprocessor,napc,plot_freq=1000):
+    def __init__(self,generator,napc,plot_freq=1000):
         self.plot_freq = plot_freq
-        self.preprocessor = preprocessor
+        self.generator = generator
         self.napc = napc
         if self.napc.is_distributed:
             raise ValueError("Callback 'customPlot' is currently unsupported when using a distribution strategy.")
     def on_epoch_end(self, epoch, logs=None):
         if epoch%self.plot_freq==0:
             # draw a random sample from all sequences in the preprocessor
-            index = np.random.randint(len(self.preprocessor.sequence_list))
+            index = np.random.randint(len(self.generator.sequence_list))
             # simulate a epoch with only 1 random sample
-            simulated_indices = [[[index]]]
-            x = self.preprocessor.epochWrapper(simulated_indices,self.preprocessor.sequenceEpoch)
-            label_mask =  self.preprocessor.epochWrapper(simulated_indices,self.preprocessor.labelEpoch)
-            accuracy_mask = self.preprocessor.epochWrapper(simulated_indices,self.preprocessor.accuracyEpoch)
-            y = self.preprocessor.combineMasks(label_mask,accuracy_mask)
+            simulated_indices = [[index]]
 
+            x = self.generator.padBatch(self.generator.batchWrapper(simulated_indices,self.generator.videoSample))
+
+            # np.cumsum(...,axis=1) without removing the -1 values
+            label_mask = self.generator.padBatch(self.generator.batchWrapper(simulated_indices,self.generator.labelSample))
+            indices = np.where(label_mask==-1)
+            label_mask = np.cumsum(label_mask,axis=1)
+            label_mask[indices] = -1.
+
+            accuracy_mask = self.generator.padBatch(self.generator.batchWrapper(simulated_indices,self.generator.accuracySample))
+            y = self.generator.combineMasksBatch(label_mask,accuracy_mask)
+    
             # draw the first batch (since we use just 1 sample, there's also just 1)
-            x = np.asarray(x[0])
-            y = np.asarray(y[0])
+            x = np.asarray(x)
+            y = np.asarray(y)
 
             # process the simulated batch
             prediction = self.napc.model.predict_on_batch(x)
