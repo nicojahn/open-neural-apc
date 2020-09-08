@@ -1,125 +1,33 @@
-def readData(model_parameter,training_parameter,data_fname,data_length_fname,sequence_dtype,labels_dtype):
-    import time as t
-    start = t.time()
-    print("Started reading files: %s"%t.strftime('%H:%M:%S %Y-%m-%d', t.localtime(start)))
+import numpy as np
+class DataLoader:
+    def __init__(self,model_parameter,training_parameter,data_fname,data_length_fname,sequence_dtype,labels_dtype):
+        self.jump_frames = training_parameter['jump input frames']
 
-    import numpy as np
-    fp_lengths = np.memmap(data_length_fname, dtype=labels_dtype, mode='r')
-    fp_lengths = np.reshape(fp_lengths,[-1,1+model_parameter['output dimensions']])
-    
-    labels = fp_lengths[:,1:]
-    fp_lengths = fp_lengths[:,0]
-    
-    sequences = np.memmap(data_fname, dtype=sequence_dtype, mode='r')
-    sequences = np.reshape(sequences,[-1,*model_parameter['input dimensions']])
-    
-    
-    jump_frames = training_parameter['jump input frames']
-    
-    sequence_list, labels_list = [], []
-    for idx,length in enumerate(fp_lengths):
+        sequences = np.memmap(data_fname, dtype=sequence_dtype, mode='r')
+        self.sequences = np.reshape(sequences,[-1,*model_parameter['input dimensions']])
+
+        lengths_and_label = np.memmap(data_length_fname, dtype=labels_dtype, mode='r')
+        self.lengths_and_label = np.reshape(lengths_and_label,[-1,1+model_parameter['output dimensions']])
+
+        self.lengths = self.lengths_and_label[:,0]
+        self.labels = self.lengths_and_label[:,1:]
         
-        offset = sum(fp_lengths[:idx])
-        sequence_length = fp_lengths[idx]
-        
-        sequence = sequences[offset:offset+sequence_length:jump_frames]
-        
-        sequence_list += [sequence]
-        labels_list += [labels[idx]]
+        self.frame_shape = model_parameter['input dimensions']
+        self.num_classes = model_parameter['output dimensions']
+
+    def __getitem__(self,idx):
+        offset = sum(self.lengths[:idx])
+        sequence_length = self.lengths[idx]
+        return self.sequences[offset:offset+sequence_length:self.jump_frames]
     
-    num_sequences = len(sequence_list)
-    elapsed_time = round(t.time()-start,2)
-    print( "Finished reading %d sequences. Took %f seconds." % (num_sequences,elapsed_time))
-    return sequence_list, labels_list
-
-### Helpers for converting the old CSV files into beautiful memory-mapped binaries
-def getNamesOfAllDataFiles(path,filetype='csv'):
-    from pathlib import Path
-    train_files = Path(path).rglob(f'**/[a-z|0-9]*.{filetype}')
-    # In my labels file weren't the file suffixes, please change to your needs
-    return {t.stem : t for t in train_files}
-
-def getFnamesAndLabels(csv_file,skip_header=True):
-    import numpy as np
-    # I assume in the labels file, that the first column are the filenames and all following columns are the labels
-    # Therefore, more flexibility when using multicategory (more than 2 classes)
-    labels = np.genfromtxt(csv_file, skip_header=int(skip_header), converters={0: lambda x: np.str(x.decode('utf-8'))}, delimiter=',')
-    return labels
-
-def createNewMemmapFiles(mode,sequence_dtype,labels_dtype):
-    import numpy as np
-    data = np.memmap(f'{mode}.dat',sequence_dtype,'w+',shape=(1))
-    labels = np.memmap(f'{mode}_meta.dat',labels_dtype,'w+',shape=(1))
-    del data
-    del labels
-
-# random noise input X with random labels y from 0 to 10
-def getDummyData(model_parameter,training_parameter,sequence_dtype,labels_dtype):
-    import numpy as np
-    return np.random.random((training_parameter["batch size"], \
-                             int(2000/training_parameter["jump input frames"]), \
-                             *model_parameter["input dimensions"])).astype(sequence_dtype), \
-             np.round(np.random.random((training_parameter["batch size"], \
-                             model_parameter["output dimensions"]))*10).astype(labels_dtype)
-
-# The convert process: reads the old data and safes it a new files
-def safeOldDataToMemMap(files_dict,labels,mode,data_folder,sequence_dtype,labels_dtype):
-    import numpy as np
-    from tqdm import tqdm
+    def getLabel(self,idx):
+        return self.labels[idx]
     
-    old_data_length = old_meta_length = 0
-    data_bytes = np.dtype(sequence_dtype).itemsize
-    labels_bytes = np.dtype(labels_dtype).itemsize
+    def getLength(self,idx):
+        return np.ceil(self.lengths[idx]/self.jump_frames).astype(np.int32)
     
-    def writeData(data,meta_data,old_data_length,old_meta_length):
-        data_mapped = np.memmap(f'{mode}.dat',sequence_dtype,'r+',shape=(data.shape[0]),offset=data_bytes*old_data_length)
-        data_mapped[:] = data
-        del data_mapped
-        
-        meta_mapped = np.memmap(f'{mode}_meta.dat',labels_dtype,'r+',shape=(meta_data.shape[0]),offset=labels_bytes*old_meta_length)
-        meta_mapped[:] = meta_data
-        del meta_mapped
+    def getNumClasses(self):
+        return self.num_classes
     
-    def readOldData(filename):
-        return np.loadtxt(filename,dtype=sequence_dtype,delimiter=',')
-        
-    for label in tqdm(labels):
-        name, *counts = label
-        try:
-            files_dict[name]
-        except KeyError:
-            print(f'File (stem) {name} does not exist')
-            continue
-        
-        data = readOldData(files_dict[name])
-        sequence_length = data.shape[0]
-        meta_data = np.asarray([sequence_length,*counts],dtype=labels_dtype)
-        
-        data = data.flatten()
-        meta_data = meta_data.flatten()
-       
-        writeData(data,meta_data,old_data_length,old_meta_length)
-
-        old_data_length+=data.shape[0]
-        old_meta_length+=meta_data.shape[0]
-
-if __name__=='__main__':
-    # just do it for all the files/modes (training/validation/testing)
-    mode = 'training'
-                         
-    from utils import loadConfig
-    data_parameter, *_ = loadConfig(verbose=0)
-                         
-    data_folder = data_parameter["data directory"]
-    sequence_dtype = data_parameter["sequence dtype"]
-    labels_dtype = data_parameter["labels dtype"]
-    
-    legacy_labels = f'data/labels/{data_parameter["%s label"%mode]}'
-    legacy_data_directory = 'data/csv/'
-    legacy_file_type = 'csv'
-    
-    files_dict = getNamesOfAllDataFiles(legacy_data_directory,filetype=legacy_file_type)
-    labels = getFnamesAndLabels(legacy_labels)
-    createNewMemmapFiles(mode=mode,sequence_dtype=sequence_dtype,labels_dtype=labels_dtype)
-    # As a sidenote: The data is saved as the file names appear in the 'labels' array
-    safeOldDataToMemMap(files_dict,labels,mode,data_folder,sequence_dtype,labels_dtype)
+    def numSequences(self):
+        return self.lengths.shape[0]

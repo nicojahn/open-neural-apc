@@ -4,69 +4,72 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.utils import Sequence
 
 class DataGenerator(Sequence):
-    def __init__(self,sequence_list,labels_list,input_scaling_factor,training_parameter,calculation_dtype):
-        self.permute = np.random.randint(0,2,(len(sequence_list),2))
-        self.labels_list = labels_list
-        self.sequence_list = sequence_list
+    def __init__(self,data,input_scaling_factor,training_parameter,calculation_dtype,labels_dtype):
+        self.num_sequences = data.numSequences()
+        self.permute = np.random.randint(0,2,(self.num_sequences,2))
+        self.data = data
+
         self.input_scaling_factor = input_scaling_factor
         self.training_parameter = training_parameter
         self.calculation_dtype = calculation_dtype
+        self.labels_dtype = labels_dtype
+        
         self.concat_length = self.training_parameter['minimum concatenation']
         self.batch_size = self.training_parameter['batch size']
-        self.num_batches = np.ceil((float(len(sequence_list))/self.concat_length)/self.batch_size).astype(int)
+        self.num_batches = np.ceil((float(self.num_sequences)/self.concat_length)/self.batch_size).astype(np.int32)
 
     def prepareIndices(self):
-        indices = np.arange(len(self.sequence_list))
+        indices = np.arange(self.num_sequences)
         if self.training:
             np.random.shuffle(indices)
+        # to handle the indices easier, i'm going to pad with -1 until we can reshape the indices properly and discard the -1 indices later
         max_sequences = (self.num_batches*self.batch_size*self.concat_length)        
-        indices = np.append(indices, -1*np.ones(max_sequences-len(self.sequence_list)))
+        indices = np.append(indices, -1*np.ones(max_sequences-self.num_sequences))
         batches = indices.reshape((self.num_batches,self.batch_size,self.concat_length))
         return batches.astype(np.int32)
 
     def videoSample(self,idx):
-        sequence = np.array(self.sequence_list[idx],dtype=np.float16)
-        sequence = sequence/self.input_scaling_factor
-
-        permutations = self.permute[idx]
-        if permutations[0]:
-            # mirror through time back/forth
-            sequence = sequence[::-1,:,:]
-        if permutations[1]:
-            # mirror left/right
-            sequence = sequence[:,:,::-1]
-        return sequence
-
+        sequence = np.asarray(self.data[idx],dtype=self.calculation_dtype)
+        # mirror through time back/forth and mirror left/right
+        return sequence[::self.permute[idx][0],:,::self.permute[idx][1]]/self.input_scaling_factor
+        
     def labelSample(self,idx):
-        length = np.shape(self.sequence_list[idx])[0]
-        permutations = self.permute[idx]
-        labels = np.array(self.labels_list[idx],dtype=np.int32)
-        if permutations[0]:
-            labels[:] = labels[::-1]
-        bound = np.zeros((length,4),dtype=np.int32)
-        bound[0,:2] = labels
-        bound[-1,2:] = labels
+        labels = np.asarray(self.data.getLabel(idx)[::self.permute[idx][0]],dtype=self.calculation_dtype)
+        length = self.data.getLength(idx)
+        bound = np.zeros((length,2*self.data.getNumClasses()),dtype=self.calculation_dtype)
+        # the upper bound (always equals labels) is already valid on the first frame
+        # the lower bound is mostly 0, but for the last frame it's also the label
+        # i'm only setting one element, since when concatenated, we have to calculate the cumsum over the labels 
+        bound[0,:self.data.getNumClasses()] = labels
+        bound[-1,self.data.getNumClasses():] = labels
         return bound
     
     def accuracySample(self,idx):
-        acc = np.zeros((np.shape(self.sequence_list[idx])[0],1),dtype=np.int32)
+        # the accuracy can only be determined on the last frame
+        acc = np.zeros((self.data.getLength(idx),1),dtype=self.calculation_dtype)
         acc[-1] = 1
         return acc
     
-    def padBatch(self,elem):
-        return pad_sequences(elem, maxlen=None, dtype=self.calculation_dtype, padding='post', value=-1.0)
+    def padBatch(self,seq):
+        # padding/masking the sequences with -1 to the longest sequence in the batch
+        return pad_sequences(seq, maxlen=None, dtype=self.calculation_dtype, padding='post', value=-1.0)
     
     def combineMasksBatch(self,l_mask,a_mask):
-        return np.concatenate([l_mask,a_mask],axis=-1)
+        # stacks the label mask (batch_size x sequence_length x 2*num_classes) and the accuracy mask (batch_size x sequence_length x 1)
+        return np.dstack([l_mask,a_mask])
     
     def batchWrapper(self,batch,function):
         batches = []
+        # operating on a single batch element
         for indices in batch:
             result = []
+            # operating on the sequences of a batch element
             for idx in indices:
                 if idx < 0: continue
+                # prepares exacly 1 sequence
                 result += [function(idx)]
             if len(result):
+                # concatenates the sequences to 1 batch element
                 batches += [np.concatenate(result)]
         return batches
     
@@ -77,7 +80,7 @@ class DataGenerator(Sequence):
         batch = self.indices[idx]
         video_sequences = self.padBatch(self.batchWrapper(batch,self.videoSample))
         
-        # np.cumsum(...,axis=1) without removing the -1 values
+        # np.cumsum(...,axis=1) without removing the -1 padding values
         label_mask = self.padBatch(self.batchWrapper(batch,self.labelSample))
         indices = np.where(label_mask==-1)
         label_mask = np.cumsum(label_mask,axis=1)
@@ -89,8 +92,10 @@ class DataGenerator(Sequence):
     def on_epoch_end(self,training=True):
         self.training = training
         self.indices = self.prepareIndices()
+        
         # reverse left/right and forward/backward only during training (every epoch is a new permutation)
+        possible_permutations = 0
         if training:
-            self.permute[:] = np.random.randint(0,2,(len(self.sequence_list),2))
-        else:
-            self.permute[:] = np.zeros((len(self.sequence_list),2))
+            possible_permutations = 1
+        # this is the 'step' of the arrays (either 1 for no permutations or -1 for reversing a sequence)
+        self.permute = np.int32(1 - (2 * np.random.randint(0,possible_permutations+1,(self.num_sequences,2))))
