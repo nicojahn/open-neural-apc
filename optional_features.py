@@ -101,7 +101,7 @@ class customPlot(tf.keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
         if epoch%self.plot_freq==0:
             # draw a random sample from all sequences in the preprocessor
-            index = np.random.randint(len(self.generator.sequence_list))
+            index = np.random.randint(self.generator.num_sequences)
             # simulate a epoch with only 1 random sample
             simulated_indices = [[index]]
 

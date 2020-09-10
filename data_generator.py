@@ -1,10 +1,11 @@
 import numpy as np
+import tensorflow as tf
 from tensorflow import keras as keras
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.utils import Sequence
 
 class DataGenerator(Sequence):
-    def __init__(self,data,input_scaling_factor,training_parameter,calculation_dtype,labels_dtype):
+    def __init__(self,data,input_scaling_factor,training_parameter,calculation_dtype):
         self.num_sequences = data.numSequences()
         self.permute = np.random.randint(0,2,(self.num_sequences,2))
         self.data = data
@@ -12,7 +13,6 @@ class DataGenerator(Sequence):
         self.input_scaling_factor = input_scaling_factor
         self.training_parameter = training_parameter
         self.calculation_dtype = calculation_dtype
-        self.labels_dtype = labels_dtype
         
         self.concat_length = self.training_parameter['minimum concatenation']
         self.batch_size = self.training_parameter['batch size']
@@ -32,7 +32,7 @@ class DataGenerator(Sequence):
         sequence = np.asarray(self.data[idx],dtype=self.calculation_dtype)
         # mirror through time back/forth and mirror left/right
         return sequence[::self.permute[idx][0],:,::self.permute[idx][1]]/self.input_scaling_factor
-        
+
     def labelSample(self,idx):
         labels = np.asarray(self.data.getLabel(idx)[::self.permute[idx][0]],dtype=self.calculation_dtype)
         length = self.data.getLength(idx)
@@ -43,21 +43,21 @@ class DataGenerator(Sequence):
         bound[0,:self.data.getNumClasses()] = labels
         bound[-1,self.data.getNumClasses():] = labels
         return bound
-    
+
     def accuracySample(self,idx):
         # the accuracy can only be determined on the last frame
         acc = np.zeros((self.data.getLength(idx),1),dtype=self.calculation_dtype)
         acc[-1] = 1
         return acc
-    
+
     def padBatch(self,seq):
         # padding/masking the sequences with -1 to the longest sequence in the batch
         return pad_sequences(seq, maxlen=None, dtype=self.calculation_dtype, padding='post', value=-1.0)
-    
+
     def combineMasksBatch(self,l_mask,a_mask):
         # stacks the label mask (batch_size x sequence_length x 2*num_classes) and the accuracy mask (batch_size x sequence_length x 1)
         return np.dstack([l_mask,a_mask])
-    
+
     def batchWrapper(self,batch,function):
         batches = []
         # operating on a single batch element
@@ -72,10 +72,11 @@ class DataGenerator(Sequence):
                 # concatenates the sequences to 1 batch element
                 batches += [np.concatenate(result)]
         return batches
-    
+
     def __len__(self):
         return self.num_batches
 
+    @tf.function
     def __getitem__(self, idx):
         batch = self.indices[idx]
         video_sequences = self.padBatch(self.batchWrapper(batch,self.videoSample))
@@ -88,7 +89,7 @@ class DataGenerator(Sequence):
         
         accuracy_mask = self.padBatch(self.batchWrapper(batch,self.accuracySample))
         return video_sequences, self.combineMasksBatch(label_mask,accuracy_mask)
-    
+
     def on_epoch_end(self,training=True):
         self.training = training
         self.indices = self.prepareIndices()
