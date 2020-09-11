@@ -1,5 +1,4 @@
 import numpy as np
-import tensorflow as tf
 from tensorflow import keras as keras
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.utils import Sequence
@@ -76,7 +75,6 @@ class DataGenerator(Sequence):
     def __len__(self):
         return self.num_batches
 
-    @tf.function
     def __getitem__(self, idx):
         batch = self.indices[idx]
         video_sequences = self.padBatch(self.batchWrapper(batch,self.videoSample))
