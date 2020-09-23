@@ -1,3 +1,6 @@
+# Copyright (c) 2020, Nico Jahn
+# All rights reserved.
+
 import numpy as np
 from tensorflow import keras as keras
 from tensorflow.keras.preprocessing.sequence import pad_sequences
@@ -12,9 +15,9 @@ class DataGenerator(Sequence):
         self.input_scaling_factor = input_scaling_factor
         self.training_parameter = training_parameter
         self.calculation_dtype = calculation_dtype
-        
-        self.concat_length = self.training_parameter['minimum concatenation']
-        self.batch_size = self.training_parameter['batch size']
+
+        self.concat_length = self.training_parameter['concatenation_length']
+        self.batch_size = self.training_parameter['batch_size']
         self.num_batches = np.ceil((float(self.num_sequences)/self.concat_length)/self.batch_size).astype(np.int32)
 
     def prepareIndices(self):
@@ -22,7 +25,7 @@ class DataGenerator(Sequence):
         if self.training:
             np.random.shuffle(indices)
         # to handle the indices easier, i'm going to pad with -1 until we can reshape the indices properly and discard the -1 indices later
-        max_sequences = (self.num_batches*self.batch_size*self.concat_length)        
+        max_sequences = (self.num_batches*self.batch_size*self.concat_length)
         indices = np.append(indices, -1*np.ones(max_sequences-self.num_sequences))
         batches = indices.reshape((self.num_batches,self.batch_size,self.concat_length))
         return batches.astype(np.int32)
@@ -78,20 +81,20 @@ class DataGenerator(Sequence):
     def __getitem__(self, idx):
         batch = self.indices[idx]
         video_sequences = self.padBatch(self.batchWrapper(batch,self.videoSample))
-        
+
         # np.cumsum(...,axis=1) without removing the -1 padding values
         label_mask = self.padBatch(self.batchWrapper(batch,self.labelSample))
         indices = np.where(label_mask==-1)
         label_mask = np.cumsum(label_mask,axis=1)
         label_mask[indices] = -1.
-        
+
         accuracy_mask = self.padBatch(self.batchWrapper(batch,self.accuracySample))
         return video_sequences, self.combineMasksBatch(label_mask,accuracy_mask)
 
     def on_epoch_end(self,training=True):
         self.training = training
         self.indices = self.prepareIndices()
-        
+
         # reverse left/right and forward/backward only during training (every epoch is a new permutation)
         possible_permutations = 0
         if training:

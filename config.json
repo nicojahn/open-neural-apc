@@ -1,40 +1,39 @@
 {
-    "data parameter":
+    "data_parameter":
     {
-        "data directory": "./data/",
-        "input scaling factor": 255,
-        "sequence dtype" : "uint8",
-        "labels dtype" : "uint32"
+        "data_directory": "./data/",
+        "input_scaling_factor": 255,
+        "sequence_dtype" : "uint8",
+        "labels_dtype" : "uint32"
     },
 
-    "model parameter":
+    "model_parameter":
     {
-        "input dimensions": [20,25],
-        "lstm width": 64,
-        "lstm depth": 5,
-        "output dimensions": 2,
+        "input_dimensions": [20,25],
+        "lstm_width": 64,
+        "lstm_depth": 5,
+        "output_dimensions": 2,
         "bidirectional": false,
         "merge_mode": "sum"
     },
 
-    "training parameter":
+    "training_parameter":
     {
         "epochs": 5000,
-        "safe steps": 5,
+        "safe_steps": 5,
         "pretrain": false,
-        "batch size": 32,
-        "restrict dataset size": 1500,
-        "learning rate": 0.001,
-        "optimizer parameter": [0.9,0.999,1e-07],
-        "optimizer clip parameter": [1.0,2.0],
-        "dropout rate": 0.2,
-        "jump input frames": 4,
-        "accuracy error niveau": 0.5,
-        "minimum concatenation": 5,
-        "maximum concatenation": 5,
-        "calculation dtype" : "float16",
-        "calculation epsilon" : 1e-7,
-        "aux scale" : 3,
+        "batch_size": 32,
+        "restrict_dataset size": 1500,
+        "learning_rate": 0.001,
+        "optimizer_parameter": [0.9,0.999,1e-07],
+        "optimizer_clip_parameter": [1.0,2.0],
+        "dropout_rate": 0.2,
+        "jump_frames": 4,
+        "accuracy_error_niveau": 0.5,
+        "concatenation_length": 5,
+        "calculation_dtype" : "float16",
+        "calculation_epsilon" : 1e-7,
+        "aux_scale" : 3,
         "v1RNN" : false
     }
 }
