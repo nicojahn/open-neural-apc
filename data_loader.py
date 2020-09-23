@@ -5,7 +5,7 @@ import numpy as np
 
 class DataLoader:
     def __init__(self,model_parameter,training_parameter,data_fname,data_length_fname,sequence_dtype,labels_dtype):
-        self.jump_frames = training_parameter['jump_frames']
+        self.frame_stride = training_parameter['frame_stride']
 
         sequences = np.memmap(data_fname, dtype=sequence_dtype, mode='r')
         self.sequences = np.reshape(sequences,[-1,*model_parameter['input_dimensions']])
@@ -22,13 +22,13 @@ class DataLoader:
     def __getitem__(self,idx):
         offset = sum(self.lengths[:idx])
         sequence_length = self.lengths[idx]
-        return self.sequences[offset:offset+sequence_length:self.jump_frames]
+        return self.sequences[offset:offset+sequence_length:self.frame_stride]
     
     def getLabel(self,idx):
         return self.labels[idx]
     
     def getLength(self,idx):
-        return np.ceil(self.lengths[idx]/self.jump_frames).astype(np.int32)
+        return np.ceil(self.lengths[idx]/self.frame_stride).astype(np.int32)
     
     def getNumClasses(self):
         return self.num_classes
