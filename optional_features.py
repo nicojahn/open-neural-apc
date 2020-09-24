@@ -90,3 +90,16 @@ def createVideo(epoch,batch_idx,sequence,prediction,upper_bound,lower_bound,dpi=
         writer.write(image)
         plt.close(fig)
     writer.release()
+
+class StoppingAfterWarmup(tf.keras.callbacks.EarlyStopping):
+    def __init__(self, monitor='accuracy', min_delta=0.005, patience=100, verbose=0, mode='max',\
+                 baseline=None, restore_best_weights=False, baseline_accuracy = 0.4):
+        super(StoppingAfterWarmup, self).__init__(monitor=monitor, min_delta=min_delta, patience=patience, verbose=verbose, mode=mode, baseline=baseline, restore_best_weights=restore_best_weights)
+        self.baseline_accuracy = baseline_accuracy
+        self.active = False
+
+    def on_epoch_end(self, epoch, logs={}):
+        if not "accuracy" in logs: return
+        if logs["accuracy"] > self.baseline_accuracy or self.active:
+            super().on_epoch_end(epoch, logs)
+            self.active = True

@@ -1,3 +1,6 @@
+# do not add informations from wandb
+wandb/*
+
 # keeping the converted notebook away, since it's redundant to the .ipynb
 open-neural-apc.py
 

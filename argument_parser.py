@@ -9,7 +9,7 @@ def parse_arguments():
     parser.add_argument('-e', '--epochs', type=int, help='number of epochs to train')
     parser.add_argument('-a', '--aux_scale', type=int , help='fraction of aux loss used (denominator)')
     parser.add_argument('-c', '--concatenation_length', type=int , help='the number of sequences to be concatenated')
-    parser.add_argument('-l', '--learning_rate', type=int , help='constant learning rate')
+    parser.add_argument('-l', '--learning_rate', type=float , help='constant learning rate')
     parser.add_argument('-b', '--batch_size', type=int , help='training batch size')
     parser.add_argument('-d', '--lstm_depth', type=int , help='lstm core depth')
     parser.add_argument('-w', '--lstm_width', type=int , help='lstm core width')

@@ -1,3 +1,4 @@
 matplotlib
 tqdm
 tensorflow-gpu
+wandb
