@@ -1,7 +1,9 @@
 # open-neural-apc
 [![CodeFactor](https://www.codefactor.io/repository/github/nicojahn/open-neural-apc/badge)](https://www.codefactor.io/repository/github/nicojahn/open-neural-apc)
-[![Repo on GitLab](https://img.shields.io/badge/repo-GitLab-6C488A.svg)](https://gitlab.nicojahn.com/nicojahn/open-neural-apc)
+[![Repo on GitLab](https://img.shields.io/badge/mirror-gitlab.nicojahn.com-6C488A.svg)](https://gitlab.nicojahn.com/nicojahn/open-neural-apc)
+[![Repo on GitLab](https://img.shields.io/badge/mirror-gitlab.com-6C488A.svg)](https://gitlab.com/nicojahn/open-neural-apc)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nicojahn/open-neural-apc/blob/master/open-neural-apc.ipynb)
+[Repository Size](https://img.shields.io/github/repo-size/nicojahn/open-neural-apc)
 
 ![neural-apc](results/gifs/10000_7.gif)
 
