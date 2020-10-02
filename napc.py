@@ -19,10 +19,7 @@ class NeuralAPC():
         self.verbose = verbose
         
         # Doing this on purpose. The old LSTM implementation was faster than the new one
-        self.v1RNN = False
-        if 'v1RNN' in list(self.training_parameter.keys()):
-            if self.training_parameter['v1RNN']:
-                self.v1RNN = True
+        self.v1RNN = self.training_parameter.get('v1RNN', False)
         
         self.model = self.createNewModel()
         # assemble network
@@ -37,34 +34,32 @@ class NeuralAPC():
         # Catching the: ValueError: Gradient clipping in the optimizer (by setting clipnorm or clipvalue) is currently unsupported when using a distribution strategy.
         self.is_distributed = tf.distribute.in_cross_replica_context()
 
+        # set an epoch
+        self.epoch = 0
+
+        clip_gradient = "optimizer_clip_parameter" in self.training_parameter
+        is_half_precision = 'float16' in self.training_parameter["calculation_dtype"]
+
+        optimizer_clip_parameter = {}
+        if clip_gradient and self.training_parameter["optimizer_clip_parameter"] is not None \
+                            and not is_half_precision and not self.is_distributed: 
+            optimizer_clip_parameter = self.training_parameter["optimizer_clip_parameter"]
+
+        self.model.optimizer = keras.optimizers.Adam(self.training_parameter['learning_rate'],\
+                                                     **self.training_parameter["optimizer_parameter"],\
+                                                     **optimizer_clip_parameter)
+
+        # helper for the loss
+        self.zero = K.cast(0.,dtype=K.floatx())
+        self.one = K.cast(1.,dtype=K.floatx())
+        self.aux_scale = K.cast(self.training_parameter['aux_scale'],dtype=K.floatx())
+        self.slack = K.cast(self.training_parameter['accuracy_error_niveau'],dtype=K.floatx())
+
         if restored:
-            # TODO: load weights, optimizers, losses etc.
             pass
         else:
-            # set an epoch
-            self.epoch = 0
-            
-            clip_gradient = "optimizer_clip_parameter" in list(self.training_parameter.keys())
-            is_half_precision = 'float16' in self.training_parameter["calculation_dtype"]
-            
-            additions = dict()
-            if clip_gradient and self.training_parameter["optimizer_clip_parameter"] is not None \
-                                and not is_half_precision and not self.is_distributed: 
-                value, norm = self.training_parameter["optimizer_clip_parameter"]
-                # you can utilize the parameter by using:
-                # keras.optimizers ... ,clipvalue = value, clipnorm = norm)
-                additions["clipvalue"] = value
-                additions["clipnorm"] = norm
-                
-            self.model.optimizer = keras.optimizers.Adam(self.training_parameter['learning_rate'],\
-                                                         *self.training_parameter["optimizer_parameter"],\
-                                                         **additions)
-            
-            # helper for the loss
-            self.zero = K.cast(0.,dtype=K.floatx())
-            self.one = K.cast(1.,dtype=K.floatx())
-            self.aux_scale = K.cast(self.training_parameter['aux_scale'],dtype=K.floatx())
-            self.slack = K.cast(self.training_parameter['accuracy_error_niveau'],dtype=K.floatx())
+            self.compile()
+            self.save()
 
     def compile(self):
         self.model.compile(loss=self.loss, optimizer=self.model.optimizer, metrics=[self.accuracy])
@@ -132,9 +127,9 @@ class NeuralAPC():
                 lstm = LSTM(units=self.model_parameter['lstm_width'],return_sequences=True, \
                                     dropout=self.training_parameter['dropout_rate'],name='CoreLayer%d'%idx)
             
-            if 'bidirectional' in list(self.model_parameter.keys()):
+            if 'bidirectional' in self.model_parameter:
                 merge_mode = 'concat'
-                if 'merge_mode' in list(self.model_parameter.keys()):
+                if 'merge_mode' in self.model_parameter:
                     merge_mode = self.model_parameter['merge_mode']
                 if self.model_parameter['bidirectional']:
                     lstm = Bidirectional(lstm,merge_mode=merge_mode)
@@ -195,20 +190,3 @@ class NeuralAPC():
         error_with_slack = K.cast(K.less_equal(error_with_slack,self.zero),dtype=K.floatx())
         # number of right predicted sequences divided by count of sequences
         return K.sum(accuracy_mask*error_with_slack) / K.sum(accuracy_mask)
-
-    class IncreaseEpochCustom(tf.keras.callbacks.Callback):
-        def __init__(self,napc):
-            self.napc = napc
-        def on_epoch_end(self, epoch, logs=None):
-            # Since Keras Progbar starts counting with 1, I have to add here 1 
-            self.napc.epoch = epoch+1
-
-    # Tensorflow Keras ModelCheckpoint argument 'period' is deprecated
-    # Therefore, I'm doing it on my own
-    class SaveEveryNthEpochCustom(tf.keras.callbacks.Callback):
-        def __init__(self,napc,save_steps):
-            self.napc = napc
-            self.save_steps = save_steps
-        def on_epoch_end(self, epoch, logs=None):
-            if self.napc.epoch%self.save_steps == 0:
-                self.napc.save()

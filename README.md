@@ -5,7 +5,7 @@
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nicojahn/open-neural-apc/blob/master/open-neural-apc.ipynb)
 [![Repository Size](https://img.shields.io/github/repo-size/nicojahn/open-neural-apc)](https://github.com/nicojahn/open-neural-apc)
 
-![neural-apc](results/gifs/10000_7.gif)
+![neural-apc](https://nicojahn.github.io/open-neural-apc/results/gifs/10000_007.gif)
 
 ## Introduction
 This repository contains my original implementation of an RNN-based APC (Automated Passenger Counting) system on the <a href="https://github.com/nicojahn/open-neural-apc/tree/original" target="_blank" rel="noopener noreferrer">'orignal'</a> branch. This was the subject of my bachelor thesis "Counting People on Image Sequences Using Recurrent Neural Networks" at the TU Berlin in the Neural Information Processing Group. A newer, more basic implementation in <a href="https://github.com/tensorflow/tensorflow" target="_blank" rel="noopener noreferrer">Tensorflow 2</a> is provided via the jupyter notebook. A pre-trained (maybe not optimal) model is delivered with a handful of test sequences. The bachelor thesis will be provided upon request.
@@ -49,9 +49,9 @@ BSD 3-Clause License
     * The gray dashed line is just a helping projection of the current model count to the y-axis
     * The green line is the **raw output** of the model
  
-![neural-apc](results/gifs/10000_0.gif)
+![neural-apc](https://nicojahn.github.io/open-neural-apc/results/gifs/10000_000.gif)
 
-You can find more GIFs of the validation sequences <a href="./results/gifs/" target="_blank" rel="noopener noreferrer">here</a>.
+You can find more GIFs and videos of the validation sequences <a href="https://github.com/nicojahn/nicojahn.github.io/tree/master/open-neural-apc/results/" target="_blank" rel="noopener noreferrer">here</a>.
 
 ## What do the labels look like?
 In short:

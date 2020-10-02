@@ -13,9 +13,12 @@ data/train.csv
 .DS_Store
 *.DS_Store
 
-# keep video folder, but not the large videos (you can still upload the gifs)
+# keep video/gif folder and not the files (just for the result someone could plot)
+# host the gifs on github.io
 results/videos/*
+results/gifs/*
 !results/videos/.keep
+!results/gifs/.keep
 
 # Don't put trained models under git versioning (but only the model which comes with it)
 models/*
