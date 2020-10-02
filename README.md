@@ -1,5 +1,7 @@
 # open-neural-apc
 
+## NOTICE: This branch is archived. The data, models and videos are deleted. Please use the master branch.
+
 This repository (especially this branch) contains my original implementation of an RNN-based APC (Automated Passenger Counting) system.
 
 This was the subject of my bachelor thesis "Counting People on Image Sequences Using Recurrent Neural Networks".
