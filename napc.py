@@ -21,6 +21,9 @@ class NeuralAPC():
         # Doing this on purpose. The old LSTM implementation was faster than the new one
         self.v1RNN = self.training_parameter.get('v1RNN', False)
         
+        # setting the precision to mixed if float16 is desired in training_parameter
+        self.setPrecision()
+        
         self.model = self.createNewModel()
         # assemble network
         self.AddInput()
@@ -60,6 +63,9 @@ class NeuralAPC():
         else:
             self.compile()
             self.save()
+        
+        # creating list with some important callbacks
+        self.setCallbacks()
 
     def compile(self):
         self.model.compile(loss=self.loss, optimizer=self.model.optimizer, metrics=[self.accuracy])
@@ -108,6 +114,34 @@ class NeuralAPC():
         model.add(InputLayer(input_shape=[None,*self.model_parameter['input_dimensions']],dtype=self.training_parameter["calculation_dtype"]))
         return model
     
+    def setCallbacks(self):
+        from callbacks import IncreaseEpochCustom, SaveEveryNthEpochCustom
+        self.callbacks = []
+        self.callbacks += [IncreaseEpochCustom(self)]
+        self.callbacks += [SaveEveryNthEpochCustom(self, self.training_parameter['safe_steps'])]
+        # tensorboard callback
+        self.callbacks += [tf.keras.callbacks.TensorBoard(log_dir=self.model_path+'/logs',
+                                                     histogram_freq=0, write_graph=True,
+                                                     write_images=False, update_freq='epoch',
+                                                     profile_batch=0, embeddings_freq=0, 
+                                                     embeddings_metadata=None)]
+    
+    def setPrecision(self):
+        # enable effcient data processing
+        calculation_dtype = self.training_parameter["calculation_dtype"]
+        calculation_epsilon = self.training_parameter["calculation_epsilon"]
+
+        # enable single/half/double precision
+        import tensorflow.keras.backend as K
+        K.set_floatx(calculation_dtype)
+        K.set_epsilon(calculation_epsilon)
+
+        # enable mixed precission
+        if 'float16' in calculation_dtype:
+            from tensorflow.keras.mixed_precision import experimental as mixed_precision
+            policy = mixed_precision.Policy('mixed_float16')
+            mixed_precision.set_policy(policy)
+
     # input layer which is currently just a dense layer, therefore we have to flatten the input frames        
     def AddInput(self):
         self.model.add(Reshape(target_shape=(-1, np.multiply(*self.model_parameter['input_dimensions'])),name='InputReshape'))

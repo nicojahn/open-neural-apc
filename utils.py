@@ -32,3 +32,20 @@ def allow_growth():
         except RuntimeError as e:
             # Memory growth must be set before GPUs have been initialized
             print(e)# set this TensorFlow session as the default session for Keras
+
+def prepare_env():
+    # disable annoying tf warnings (retracing etc.)
+    import os
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+    import tensorflow as tf
+    tf.get_logger().setLevel('ERROR')
+    
+    # enable GPU memory growth
+    allow_growth()
+
+    # extention to run neural-apc in google colab and retrieving all neccessary files
+    import sys
+    IN_COLAB = 'google.colab' in sys.modules
+    if IN_COLAB:
+        os.system("git clone https://github.com/nicojahn/open-neural-apc.git")
+        os.chdir('open-neural-apc')

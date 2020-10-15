@@ -7,14 +7,13 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.utils import Sequence
 
 class DataGenerator(Sequence):
-    def __init__(self,data,input_scaling_factor,training_parameter,calculation_dtype):
-        self.num_sequences = data.numSequences()
+    def __init__(self,data,training_parameter):
+        self.num_sequences = len(data)
         self.permute = np.random.randint(0,2,(self.num_sequences,2))
         self.data = data
 
-        self.input_scaling_factor = input_scaling_factor
         self.training_parameter = training_parameter
-        self.calculation_dtype = calculation_dtype
+        self.calculation_dtype = training_parameter["calculation_dtype"]
 
         self.concat_length = self.training_parameter['concatenation_length']
         self.batch_size = self.training_parameter['batch_size']
@@ -33,7 +32,7 @@ class DataGenerator(Sequence):
     def videoSample(self,idx):
         sequence = np.asarray(self.data[idx],dtype=self.calculation_dtype)
         # mirror through time back/forth and mirror left/right
-        return sequence[::self.permute[idx][0],:,::self.permute[idx][1]]/self.input_scaling_factor
+        return sequence[::self.permute[idx][0],:,::self.permute[idx][1]]
 
     def labelSample(self,idx):
         labels = np.asarray(self.data.getLabel(idx)[::self.permute[idx][0]],dtype=self.calculation_dtype)

@@ -16,11 +16,13 @@ def parse_arguments():
     return parser.parse_known_args()
 
 # overwriting existing config options
-def overwrite_config(parsed_arguments, model_parameter, training_parameter):
+def overwrite_config(parsed_arguments, data_parameter, model_parameter, training_parameter):
     arguments = vars(parsed_arguments)
     for argument in arguments:
         if not arguments[argument] is None:
-            if argument in model_parameter:
+            if argument in data_parameter:
+                data_parameter[argument] = arguments[argument]
+            elif argument in model_parameter:
                 model_parameter[argument] = arguments[argument]
             elif argument in training_parameter:
                 training_parameter[argument] = arguments[argument]

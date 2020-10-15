@@ -1,10 +1,7 @@
 {
     "data_parameter":
     {
-        "data_directory": "./data/",
-        "input_scaling_factor": 255,
-        "sequence_dtype" : "uint8",
-        "labels_dtype" : "uint32",
+        "data": "./data.h5",
         "class_names": ["boarding","alighting"]
     },
 
