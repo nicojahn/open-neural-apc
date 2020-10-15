@@ -106,3 +106,27 @@ def createVideo(epoch, video_index, sequence, prediction, upper_bound, lower_bou
     
     # saves the animation  
     anim.save('./results/videos/video%05d_%03d.mp4'%(epoch,video_index), writer = 'ffmpeg', fps = fps)
+
+def createVideos(x,y,predictions,epoch,video_idx_offset,class_names):
+    import numpy as np
+    import tensorflow as tf
+    from tqdm.notebook import trange, tqdm
+    
+    # has to create the videos for every element
+    for sample_idx, prediction in enumerate(tqdm(predictions, desc='Videos created', leave=False, unit='videos')):
+        input_dimensions = np.shape(x)[2:]
+        output_dimensions = np.shape(predictions)[2]
+        
+        # mask/remove the padding if batched
+        binary_mask = (np.minimum(0, y[sample_idx,:,2*output_dimensions])+1).astype(bool)
+        input_sequence = x[sample_idx,binary_mask]
+        pred = prediction[binary_mask]
+        lower_bound = y[sample_idx,binary_mask,0:output_dimensions]
+        upper_bound = y[sample_idx,binary_mask,output_dimensions:2*output_dimensions]
+
+        # if creating the video takes to long, you can adjust the default dpi=300 parameter
+        # epoch and video_index are just used for the video name
+        # the other arguments are actually plotted in the video
+        video_index = video_idx_offset+sample_idx
+        createVideo(epoch, video_index, input_sequence, pred, lower_bound, upper_bound,
+                    input_dimensions, class_names=class_names)

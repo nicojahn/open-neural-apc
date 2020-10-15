@@ -42,10 +42,3 @@ def prepare_env():
     
     # enable GPU memory growth
     allow_growth()
-
-    # extention to run neural-apc in google colab and retrieving all neccessary files
-    import sys
-    IN_COLAB = 'google.colab' in sys.modules
-    if IN_COLAB:
-        os.system("git clone https://github.com/nicojahn/open-neural-apc.git")
-        os.chdir('open-neural-apc')
