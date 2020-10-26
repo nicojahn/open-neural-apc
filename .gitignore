@@ -4,11 +4,6 @@ wandb/*
 # keeping the converted notebook away, since it's redundant to the .ipynb
 open-neural-apc.py
 
-# the data problem. Not able to share those with you guys...
-data/training.dat
-data/training_meta.dat
-data/train.csv
-
 # apple stuff
 .DS_Store
 *.DS_Store
