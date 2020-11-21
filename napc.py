@@ -205,7 +205,11 @@ class NeuralAPC():
         upper_bound = K.cast(y_true[:,:,:output_dimensions], dtype=K.floatx())
         lower_bound = K.cast(y_true[:,:,output_dimensions:2*output_dimensions], dtype=K.floatx())
 
-        return K.mean(self._calc_loss(upper_bound, lower_bound, y_pred), axis=0, keepdims=True)
+        mask = K.cast(K.greater_equal(upper_bound, self._TF_ZERO), dtype=K.floatx())
+        upper_bound = mask * K.cumsum(upper_bound,axis=1)
+        lower_bound = mask * K.cumsum(lower_bound,axis=1)
+
+        return K.mean(self._calc_loss(upper_bound, lower_bound, mask, y_pred), axis=0, keepdims=True)
 
     def accuracy(self, y_true, y_pred):
         y_pred = K.cast(y_pred, dtype=K.floatx())
@@ -214,6 +218,7 @@ class NeuralAPC():
         upper_bound = K.cast(y_true[:,:,:output_dimensions], dtype=K.floatx())
 
         mask = K.cast(K.greater_equal(upper_bound, self._TF_ZERO), dtype=K.floatx())
+        upper_bound = mask * K.cumsum(upper_bound,axis=1)
         accuracy_mask = K.cast(y_true[:,:,2*output_dimensions:], dtype=K.floatx())
         
         # because the accuracy_mask is originally also padded with -1, we mask it
@@ -245,8 +250,7 @@ class NeuralAPC():
                               K.abs(stabelize_change_backward), \
                               K.abs(freezed_last_prediction)], axis=0)
     
-    def _calc_loss(self, upper_bound, lower_bound, prediction):
-        mask = K.cast(K.greater_equal(upper_bound, self._TF_ZERO), dtype=K.floatx())
+    def _calc_loss(self, upper_bound, lower_bound, mask, prediction):
         # main error to the label (the predictions outside the bounding boxes)
         error = mask * (K.maximum(self._TF_ZERO, prediction-upper_bound) +\
                             K.minimum(self._TF_ZERO, prediction-lower_bound))

@@ -20,6 +20,19 @@ class DataLoader:
     
     def get_label(self, idx):
         return self._labels[idx]
+
+    def get_bounds(self, idx):
+        sequence_length = self.get_length(idx)
+        placeholder = np.zeros((sequence_length,2*self.num_classes))
+        placeholder[0,:self.num_classes] = self._labels[idx]
+        placeholder[-1,self.num_classes:] = self._labels[idx]
+        return placeholder
+    
+    def get_accuracy(self, idx):
+        sequence_length = self.get_length(idx)
+        placeholder = np.zeros((sequence_length,1))
+        placeholder[-1] = 1
+        return placeholder
     
     def get_length(self, idx):
         return np.ceil(self._lengths[idx]/self._frame_stride).astype(np.int32)
@@ -30,7 +43,15 @@ class DataLoader:
     
     def __len__(self):
         return self._lengths.shape[0]
-
+    
+    def get_ragged_tensors(self):
+        import tensorflow as tf
+        x = np.concatenate([self.__getitem__(i) for i in range(len(self))]).astype(np.float16)
+        l = np.concatenate([self.get_bounds(i) for i in range(len(self))]).astype(np.float16)
+        a = np.concatenate([self.get_accuracy(i) for i in range(len(self))]).astype(np.float16)
+        row_lengths = np.ceil(self._lengths/self._frame_stride).astype(np.int64)
+        return [tf.RaggedTensor.from_row_lengths(data, row_lengths=row_lengths) for data in [x, l, a]]
+    
 # Copied from Cyrille Rossants HDF5 benchmark: https://gist.github.com/rossant/7b4704e8caeb8f173084
 import h5py
 def _mmap_h5(path, h5path):

@@ -102,8 +102,7 @@ def create_video(epoch, video_index, sequence, prediction, upper_bound, lower_bo
 
     # calling the animation function
     anim = animation.FuncAnimation(fig, animate, init_func = init,
-                                   frames = trange(sequence_length , total=sequence_length-1, desc="Frames done", \ 
-                                                   leave=False, unit="frames"),
+                                   frames = trange(sequence_length , total=sequence_length-1, desc="Frames done", leave=False, unit="frames"),
                                    interval = 1, blit = True)
     
     # saves the animation  
@@ -121,10 +120,10 @@ def create_videos(x, y, predictions, epoch, video_idx_offset, class_names):
         
         # mask/remove the padding if batched
         binary_mask = (np.minimum(0, y[sample_idx, :, 2*output_dimensions])+1).astype(bool)
-        input_sequence = x[sample_idx, binary_mask]
+        input_sequence = x[sample_idx][binary_mask]
         pred = prediction[binary_mask]
-        lower_bound = y[sample_idx, binary_mask, 0:output_dimensions]
-        upper_bound = y[sample_idx, binary_mask, output_dimensions:2*output_dimensions]
+        lower_bound = y[sample_idx][binary_mask][:,0:output_dimensions]
+        upper_bound = y[sample_idx][binary_mask][:,output_dimensions:2*output_dimensions]
 
         # if creating the video takes to long, you can adjust the default dpi=300 parameter
         # epoch and video_index are just used for the video name

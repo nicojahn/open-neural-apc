@@ -1,0 +1,1 @@
+find $(python -c 'import site; packages = site.getsitepackages(); assert len(packages) == 1; print(packages[0])') -name dataset_ops.py -print0 | xargs -0 sed -i.bak 's/if not issubclass(new_state_class, state_class):/if False:/g'
