@@ -7,15 +7,19 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.utils import Sequence
 
 class DataGenerator(Sequence):
-    def __init__(self, data, training_parameter, training=False):
+    def __init__(self, data, training_parameter, training=False, return_sequences=True):
         self._num_sequences = len(data)
         self._permute = np.random.randint(0, 2, (self._num_sequences, 2))
         self._data = data
         self._training = training
+        self._return_sequences = return_sequences
 
         self._calculation_dtype = training_parameter["calculation_dtype"]
         self._concat_length = training_parameter["concatenation_length"]
         self._batch_size = training_parameter["batch_size"]
+        
+        if not self._return_sequences:
+            self._concat_length = 1
         
         self._num_batches = np.ceil(self._num_sequences/(self._concat_length*self._batch_size)).astype(np.int32)
         
@@ -48,6 +52,10 @@ class DataGenerator(Sequence):
         bound[0,:self._data.num_classes] = labels
         bound[-1,self._data.num_classes:] = labels
         return bound
+
+    def _label_sample_v2(self, idx):
+        labels = np.asarray(self._data.get_label(idx)[::self._permute[idx][0]], dtype=self._calculation_dtype)
+        return labels
 
     def _accuracy_sample(self, idx):
         # the accuracy can only be determined on the last frame
@@ -85,14 +93,18 @@ class DataGenerator(Sequence):
         batch = self._indices[idx]
         video_sequences = self._pad_batch(self._batch_wrapper(batch, self._video_sample))
 
-        # np.cumsum(...,axis=1) without removing the -1 padding values
-        label_mask = self._pad_batch(self._batch_wrapper(batch, self._label_sample))
-        indices = np.where(label_mask == -1)
-        label_mask = np.cumsum(label_mask, axis=1)
-        label_mask[indices] = -1.
+        if self._return_sequences:
+            # np.cumsum(...,axis=1) without removing the -1 padding values
+            label_mask = self._pad_batch(self._batch_wrapper(batch, self._label_sample))
+            indices = np.where(label_mask == -1)
+            label_mask = np.cumsum(label_mask, axis=1)
+            label_mask[indices] = -1.
 
-        accuracy_mask = self._pad_batch(self._batch_wrapper(batch, self._accuracy_sample))
-        return video_sequences, self._combine_masks_batch(label_mask, accuracy_mask)
+            accuracy_mask = self._pad_batch(self._batch_wrapper(batch, self._accuracy_sample))
+            return video_sequences, self._combine_masks_batch(label_mask, accuracy_mask)
+        else:
+            labels = self._batch_wrapper(batch, self._label_sample_v2)
+            return video_sequences, np.asarray(labels)
 
     def on_epoch_end(self):
         self._indices = self._prepare_indices()

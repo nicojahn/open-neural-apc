@@ -20,7 +20,7 @@ The NeuralAPC class is aimed for the creation and restoration of the Neural Netw
 """
 from tensorflow import keras as keras
 from tensorflow.keras.models import model_from_json
-from tensorflow.keras.layers import Reshape, InputLayer, Dense, LeakyReLU, Dropout, Bidirectional
+from tensorflow.keras.layers import Reshape, Input, Dense, LeakyReLU, Dropout, Bidirectional, TimeDistributed, Flatten, Masking
 
 import tensorflow as tf
 import tensorflow.keras.backend as K
@@ -80,8 +80,11 @@ class NeuralAPC():
         self._add_callbacks()
 
     def compile(self):
-        self._model.compile(loss=self.loss, optimizer=self._optimizer, metrics=[self.accuracy])
-        
+        if self._model_parameter["return_sequences"]:
+            self._model.compile(loss=self.loss, optimizer=self._optimizer, metrics=[self.accuracy])
+        else:
+            self._model.compile(loss="mse", optimizer=self._optimizer, metrics=[self.accuracy_v2, "mae"])
+
     def save(self):
         #create model directory first
         os.makedirs(self._model_path, exist_ok=True)
@@ -154,24 +157,30 @@ class NeuralAPC():
     def _create_model(self):
         # initial definition of the sequential model
         self._model = keras.Sequential(name="open-neural-apc")
-        self._model.add(InputLayer(input_shape=[None, *self._model_parameter["input_dimensions"]], dtype=self._training_parameter["calculation_dtype"]))
-    
+        self._model.add(Input(shape=[None, *self._model_parameter["input_dimensions"]], dtype=self._training_parameter["calculation_dtype"], ragged=self._training_parameter["ragged"]))
+        
     # input layer which is currently just a dense layer, therefore we have to flatten the input frames        
     def _add_input(self):
-        self._model.add(Reshape(target_shape=(-1, np.multiply(*self._model_parameter["input_dimensions"])), name="InputReshape"))
-        self._model.add(Dense(self._model_parameter["lstm_width"], name="InputLayer"))
-        self._model.add(Dropout(self._training_parameter["dropout_rate"], name="InputDropoutLayer"))
-        self._model.add(LeakyReLU(name="InputActivation"))
+        self._model.add(TimeDistributed(Flatten(), name="InputFlatten"))
+        self._model.add(TimeDistributed(Masking(mask_value=-1.0), name="InputMasking"))
+        self._model.add(TimeDistributed(Dense(self._model_parameter["lstm_width"]), name="InputLayer"))
+        self._model.add(TimeDistributed(Dropout(self._training_parameter["dropout_rate"]), name="InputDropoutLayer"))
+        self._model.add(TimeDistributed(LeakyReLU(),name="InputActivation"))
 
     # the core network based on lstm
     def _add_core(self):
         for idx in range(self._model_parameter["lstm_depth"]):
+            
+            return_sequences = True
+            if idx >= self._model_parameter["lstm_depth"]-1:
+                return_sequences = self._model_parameter["return_sequences"]
+            
             if self._v1RNN:
                 from tensorflow.compat.v1.keras.layers import CuDNNLSTM as LSTM
-                lstm = LSTM(units=self._model_parameter["lstm_width"], return_sequences=True, name="CoreLayer{idx}" % idx)
+                lstm = LSTM(units=self._model_parameter["lstm_width"], return_sequences=return_sequences, name="CoreLayer{idx}" % idx)
             else:
                 from tensorflow.keras.layers import LSTM
-                lstm = LSTM(units=self._model_parameter["lstm_width"], return_sequences=True, \
+                lstm = LSTM(units=self._model_parameter["lstm_width"], return_sequences=return_sequences, \
                                     dropout=self._training_parameter["dropout_rate"], name="CoreLayer%d" % idx)
             
             if "bidirectional" in self._model_parameter:
@@ -223,6 +232,10 @@ class NeuralAPC():
         # number of right predicted sequences divided by count of sequences
         return K.sum(accuracy_mask*error_with_slack) / K.sum(accuracy_mask)
     
+    @staticmethod
+    def accuracy_v2(y_true, y_pred):
+        return tf.reduce_mean(tf.cast(tf.equal(tf.round(y_true), tf.round(y_pred)), dtype=K.floatx()), axis=0)
+        
     @staticmethod
     def _aux_losses(mask, prediction, TF_ZERO, TF_ONE):
         # try to predict close to integer values (error = distance to closest integer)

@@ -12,21 +12,23 @@
         "lstm_depth": 5,
         "output_dimensions": 2,
         "bidirectional": false,
-        "merge_mode": "sum"
+        "merge_mode": "sum",
+        "return_sequences": false
     },
 
     "training_parameter":
     {
         "epochs": 5000,
         "safe_steps": 5,
-        "batch_size": 32,
+        "batch_size": 64,
         "learning_rate": 0.001,
         "optimizer_parameter": {"beta_1": 0.9, "beta_2": 0.999, "epsilon": 1e-07},
         "optimizer_clip_parameter": {"clipnorm": 1.0, "clipvalue": 2.0},
         "dropout_rate": 0.2,
         "frame_stride": 4,
         "accuracy_error_niveau": 0.5,
-        "concatenation_length": 5,
+        "concatenation_length": 1,
+        "ragged": false,
         "calculation_dtype" : "float16",
         "calculation_epsilon" : 1e-7,
         "aux_scale" : 3,
