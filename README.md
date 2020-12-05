@@ -1,4 +1,4 @@
-# open-neural-apc
+# open-neural-apc v1
 [![CodeFactor](https://www.codefactor.io/repository/github/nicojahn/open-neural-apc/badge)](https://www.codefactor.io/repository/github/nicojahn/open-neural-apc)
 [![Repo on GitLab](https://img.shields.io/badge/mirror-gitlab.nicojahn.com-6C488A.svg)](https://gitlab.nicojahn.com/nicojahn/open-neural-apc)
 [![Repo on GitLab](https://img.shields.io/badge/mirror-gitlab.com-6C488A.svg)](https://gitlab.com/nicojahn/open-neural-apc)
