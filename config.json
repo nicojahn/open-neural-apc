@@ -9,7 +9,7 @@
     {
         "input_dimensions": [20,25],
         "lstm_width": 64,
-        "lstm_depth": 5,
+        "lstm_depth": 3,
         "output_dimensions": 2,
         "bidirectional": false,
         "merge_mode": "sum",
@@ -18,7 +18,7 @@
 
     "training_parameter":
     {
-        "epochs": 5000,
+        "epochs": 1000,
         "safe_steps": 5,
         "batch_size": 64,
         "learning_rate": 0.001,
