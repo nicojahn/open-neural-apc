@@ -1,6 +1,6 @@
 # open-neural-apc
 
-## NOTICE: This branch is archived. The data, models and videos are deleted. Please use the master branch.
+## NOTICE: This branch is archived for documentation purposes only. The data, models and videos are deleted.
 
 This repository (especially this branch) contains my original implementation of an RNN-based APC (Automated Passenger Counting) system.
 
