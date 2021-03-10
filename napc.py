@@ -147,9 +147,8 @@ class NeuralAPC():
 
         # enable mixed precission
         if "float16" in calculation_dtype:
-            from tensorflow.keras.mixed_precision import experimental as mixed_precision
-            policy = mixed_precision.Policy("mixed_float16")
-            mixed_precision.set_policy(policy)
+            from tensorflow.keras import mixed_precision
+            mixed_precision.set_global_policy("mixed_float16")
 
     def _create_model(self):
         # initial definition of the sequential model
