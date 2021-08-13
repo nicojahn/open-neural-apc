@@ -2,8 +2,9 @@
 [![CodeFactor](https://www.codefactor.io/repository/github/nicojahn/open-neural-apc/badge)](https://www.codefactor.io/repository/github/nicojahn/open-neural-apc)
 [![Repo on GitLab](https://img.shields.io/badge/mirror-gitlab.nicojahn.com-6C488A.svg)](https://gitlab.nicojahn.com/nicojahn/open-neural-apc)
 [![Repo on GitLab](https://img.shields.io/badge/mirror-gitlab.com-6C488A.svg)](https://gitlab.com/nicojahn/open-neural-apc)
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nicojahn/open-neural-apc/blob/master/open-neural-apc.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/nicojahn/open-neural-apc/blob/v1/open-neural-apc.ipynb)
 [![Repository Size](https://img.shields.io/github/repo-size/nicojahn/open-neural-apc)](https://github.com/nicojahn/open-neural-apc)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 ![neural-apc](https://nicojahn.github.io/open-neural-apc/results/gifs/10000_007.gif)
 
