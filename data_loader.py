@@ -47,7 +47,7 @@ def _mmap_h5(path, h5path):
         dtype = ds.dtype
         shape = ds.shape
         # return None if dataset is empty (offset is None)
-        if offset == None:
+        if offset is None:
             return np.ndarray(shape, dtype=dtype)
         # We ensure we have a non-compressed contiguous array.
         assert ds.chunks is None

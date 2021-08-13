@@ -170,8 +170,6 @@ class NeuralAPC:
     @staticmethod
     def _set_precision(calculation_dtype, calculation_epsilon):
         # enable single/half/double precision
-        import tensorflow.keras.backend as K
-
         K.set_floatx(calculation_dtype)
         K.set_epsilon(calculation_epsilon)
 

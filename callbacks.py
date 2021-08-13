@@ -29,7 +29,7 @@ class StoppingAfterWarmup(tf.keras.callbacks.EarlyStopping):
         self.active = False
 
     def on_epoch_end(self, epoch, logs={}):
-        if not "accuracy" in logs:
+        if "accuracy" not in logs:
             return
         if logs["accuracy"] > self.baseline_accuracy or self.active:
             super().on_epoch_end(epoch, logs)

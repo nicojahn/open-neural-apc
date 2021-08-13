@@ -86,7 +86,7 @@ class DataGenerator(Sequence):
                     continue
                 # prepares exacly 1 sequence
                 result += [function(idx)]
-            if len(result):
+            if len(result) > 0:
                 # concatenates the sequences to 1 batch element
                 batches += [np.concatenate(result)]
         return batches
