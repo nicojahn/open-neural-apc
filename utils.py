@@ -1,4 +1,4 @@
-# Copyright (c) 2020, Nico Jahn
+# Copyright (c) 2020-2021, Nico Jahn
 # All rights reserved.
 
 # load model config
