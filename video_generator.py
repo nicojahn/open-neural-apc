@@ -1,5 +1,7 @@
+# -*- coding: utf-8 -*-
 # Copyright (c) 2020-2021, Nico Jahn
 # All rights reserved.
+
 
 def create_video(
     epoch,
@@ -14,17 +16,16 @@ def create_video(
     fps=10,
 ):
 
-    from tqdm.notebook import trange
-    import numpy as np
-
     import matplotlib
+    import numpy as np
+    from tqdm.notebook import trange
 
     matplotlib.use("Agg")
 
+    import matplotlib.animation as animation
     import matplotlib.pyplot as plt
     from matplotlib.gridspec import GridSpec
-    from matplotlib.ticker import MultipleLocator, MaxNLocator
-    import matplotlib.animation as animation
+    from matplotlib.ticker import MaxNLocator, MultipleLocator
 
     plt.minorticks_on()
 
@@ -82,7 +83,7 @@ def create_video(
     )
 
     # set all the axis, labels and the prediction curve once
-    for idx, direction in enumerate(class_names):
+    for (idx, direction) in enumerate(class_names):
         # main plot
         axes[idx].plot(prediction[:, idx], "-", color="limegreen", label="prediction")
         axes[idx].set_xlabel("# of frames")
@@ -158,10 +159,10 @@ def create_video(
 def create_videos(x, y, predictions, epoch, video_idx_offset, class_names):
     import numpy as np
     import tensorflow as tf
-    from tqdm.notebook import trange, tqdm
+    from tqdm.notebook import tqdm, trange
 
     # has to create the videos for every element
-    for sample_idx, prediction in enumerate(
+    for (sample_idx, prediction) in enumerate(
         tqdm(predictions, desc="Videos created", leave=False, unit="videos")
     ):
         input_dimensions = np.shape(x)[2:]

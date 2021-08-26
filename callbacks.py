@@ -1,6 +1,6 @@
+# -*- coding: utf-8 -*-
 # Copyright (c) 2020-2021, Nico Jahn
 # All rights reserved.
-
 import tensorflow as tf
 
 

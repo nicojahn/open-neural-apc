@@ -1,8 +1,7 @@
+# -*- coding: utf-8 -*-
 # Copyright (c) 2020-2021, Nico Jahn
 # All rights reserved.
-
 import numpy as np
-from tensorflow import keras as keras
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.utils import Sequence
 
@@ -109,7 +108,7 @@ class DataGenerator(Sequence):
         accuracy_mask = self._pad_batch(
             self._batch_wrapper(batch, self._accuracy_sample)
         )
-        return video_sequences, self._combine_masks_batch(label_mask, accuracy_mask)
+        return (video_sequences, self._combine_masks_batch(label_mask, accuracy_mask))
 
     def on_epoch_end(self):
         self._indices = self._prepare_indices()

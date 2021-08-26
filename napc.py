@@ -1,6 +1,6 @@
+# -*- coding: utf-8 -*-
 # Copyright (c) 2020-2021, Nico Jahn
 # All rights reserved.
-
 """Neural Network class with architecture and loss functions.
 
 The NeuralAPC class is aimed for the creation and restoration of the Neural Network. The main interfaces are the constructor and the compile(), save() and load_model() methods. The class is structured in 3 parts (top to bottom): The main interfaces, utility functions, the loss/metric functions.
@@ -12,34 +12,30 @@ The NeuralAPC class is aimed for the creation and restoration of the Neural Netw
   napc.save()
 
   or
-  
+
   napc = NeuralAPC(model_parameter, training_parameter)
   napc.load_model(10000, "models/")
   napc.compile()
-
 """
-from tensorflow import keras as keras
-from tensorflow.keras.models import model_from_json
-from tensorflow.keras.layers import (
-    Reshape,
-    InputLayer,
-    Dense,
-    LeakyReLU,
-    Dropout,
-    Bidirectional,
-)
-
-import tensorflow as tf
-import tensorflow.keras.backend as K
-
-import numpy as np
 import datetime
 import os
+
+import numpy as np
+import tensorflow as tf
+import tensorflow.keras.backend as K
+from tensorflow import keras as keras
+from tensorflow.keras.layers import Bidirectional
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.layers import Dropout
+from tensorflow.keras.layers import InputLayer
+from tensorflow.keras.layers import LeakyReLU
+from tensorflow.keras.layers import Reshape
+from tensorflow.keras.models import model_from_json
 
 
 class NeuralAPC:
     def __init__(self, *args, verbose=0, **kwargs):
-        self._model_parameter, self._training_parameter = args
+        (self._model_parameter, self._training_parameter) = args
         self._model_path = "./models/%s/" % str(datetime.datetime.now()).replace(
             " ", "_"
         )

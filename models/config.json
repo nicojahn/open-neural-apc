@@ -4,7 +4,7 @@
         "data": "./data.h5",
         "class_names": ["boarding","alighting"]
     },
-    
+
     "model_parameter":
     {
         "input_dimensions": [20,25],

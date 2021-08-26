@@ -1,6 +1,6 @@
+# -*- coding: utf-8 -*-
 # Copyright (c) 2020-2021, Nico Jahn
 # All rights reserved.
-
 # load model config
 def load_config(config_path="config.json", verbose=1):
     import json
@@ -17,7 +17,7 @@ def load_config(config_path="config.json", verbose=1):
     if verbose:
         print(json.dumps(config_data, indent=2, sort_keys=True))
 
-    return data_parameter, model_parameter, training_parameter
+    return (data_parameter, model_parameter, training_parameter)
 
 
 def allow_growth():

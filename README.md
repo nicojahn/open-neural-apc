@@ -45,11 +45,11 @@ BSD 3-Clause License
     * The y-axis the count
     * The red dashed line on the top
         * Only label for the end of the sequence as upper bound for every intermediate frame
-    * The blue dashed line on the bottom which raises in the end is the lower bound 
+    * The blue dashed line on the bottom which raises in the end is the lower bound
     * The gray line is the current progress of the video
     * The gray dashed line is just a helping projection of the current model count to the y-axis
     * The green line is the **raw output** of the model
- 
+
 ![neural-apc](https://nicojahn.github.io/open-neural-apc/results/gifs/10000_000.gif)
 
 You can find more GIFs and videos of the validation sequences <a href="https://github.com/nicojahn/nicojahn.github.io/tree/master/open-neural-apc/results/" target="_blank" rel="noopener noreferrer">here</a>.

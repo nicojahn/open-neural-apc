@@ -1,0 +1,49 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.3.0
+    hooks:
+    -   id: end-of-file-fixer
+    -   id: trailing-whitespace
+    -   id: check-docstring-first
+    -   id: fix-encoding-pragma
+    -   id: check-ast
+    -   id: requirements-txt-fixer
+    -   id: check-json
+    -   id: check-case-conflict
+
+-   repo: https://github.com/psf/black
+    rev: 19.3b0
+    hooks:
+    -   id: black
+
+-   repo: git://github.com/FalconSocial/pre-commit-mirrors-pep257
+    rev: v0.3.3
+    hooks:
+    -   id: pep257
+        args: ['--ignore=D100,D101,D102,D103,D105']
+
+-   repo: https://github.com/kynan/nbstripout
+    rev: 0.5.0
+    hooks:
+    -   id: nbstripout
+
+-   repo: https://github.com/zricethezav/gitleaks
+    rev: v7.5.0
+    hooks:
+    -   id: gitleaks
+
+-   repo: https://github.com/asottile/reorder_python_imports
+    rev: v2.6.0
+    hooks:
+    -   id: reorder-python-imports
+
+- repo: https://github.com/hadialqattan/pycln
+  rev: v1.0.3 # Possible releases: https://github.com/hadialqattan/pycln/releases
+  hooks:
+    - id: pycln
+
+- repo: https://github.com/myint/docformatter
+  rev: v1.3.1
+  hooks:
+    - id: docformatter
+      args: [--in-place]

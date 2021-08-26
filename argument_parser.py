@@ -1,7 +1,8 @@
+# -*- coding: utf-8 -*-
 # Copyright (c) 2020-2021, Nico Jahn
 # All rights reserved.
-
 import argparse
+
 
 # parsing default parameters
 def parse_arguments():
@@ -44,6 +45,6 @@ if __name__ == "__main__":
     # example usage
     from utils import load_config
 
-    _, model_parameter, training_parameter = load_config(verbose=0)
-    parsed_arguments, _ = parse_arguments()
+    (_, model_parameter, training_parameter) = load_config(verbose=0)
+    (parsed_arguments, _) = parse_arguments()
     overwrite_config(parsed_arguments, model_parameter, training_parameter)
