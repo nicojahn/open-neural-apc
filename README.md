@@ -40,7 +40,7 @@ BSD 3-Clause License
     * Noisy sequence
     * The door is located on the bottom of the frames
 * On the left side of the video, the neural-apc is shown in action
-    * The top plot are the alighting passengers, bottom the boarding ones
+    * The top plot displays the boarding passengers, the bottom one the alighting
     * The x-axis resembles the number of frames
     * The y-axis the count
     * The red dashed line on the top
