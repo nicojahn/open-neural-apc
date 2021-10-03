@@ -1,7 +1,7 @@
 {
     "data_parameter":
     {
-        "data": "./data.h5",
+        "data": "./data/data.h5",
         "class_names": ["boarding","alighting"]
     },
 

@@ -23,6 +23,10 @@ models/*
 !models/tensorboard_example*
 !models/model.tflite
 
+# Don't commit data files except the included data
+data/*
+!data/data.h5
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

@@ -61,6 +61,21 @@ In short:
  * We just learn from this bounding box the green line
 ![label problem](graphics/label_problem.png)
 
+## The Berlin-APC dataset
+
+The <a href="https://doi.org/10.14279/depositonce-12205" target="_blank" rel="noopener noreferrer">Berlin-APC dataset</a> is licensed under <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="noopener noreferrer">CC BY-NC-ND 4.0</a>. Which does not allow me to distribute a transformed or remixed version of the data. But I have a script for you to download the data from the <a href="https://doi.org/10.14279/depositonce-12205" target="_blank" rel="noopener noreferrer">official source</a> or my own AWS mirror and prepare it for the usage with this Open-Neural-APC code.
+
+```python3
+python3 data_loader.py
+```
+
+_Short Summary_: The data set contains 12966 videos with labels for boarding and alighting passengers. More information about the data set is provided via the publication mentioned below.
+
+_Disclaimer_: I have used a very similar data source for my bachelor thesis (compare to the sequences in data/data.h5 file). The current publication linked below consists of more, newer and better data. I am not the owner of the data nor am I an author of the publication. It is originally published at <a href="https://depositonce.tu-berlin.de" target="_blank" rel="noopener noreferrer">DepositOnce</a> and any work using the data should also refer to it as for example in the IEEE style shown below or use <a href="https://depositonce.tu-berlin.de/item-export/11303/13421/bibtex" target="_blank" rel="noopener noreferrer">the bibtex file</a>.
+
+
+```R. Seidel, D. Zarafeta, M. Siebert, et al., Berlin-APC: A Privacy-Friendly Dataset for Automated Passenger Counting in Public Transport, 2021. [Online]. Available: http://dx.doi.org/10.14279/depositonce-12205.```
+
 ## You told the loss function was special?
 In my honest opinion, the model is rather boring, it was planned just as a basic model. You can see it at the bottom of this page (Visualized with <a href="https://github.com/lutzroeder/netron" target="_blank" rel="noopener noreferrer">Netron</a> by <a href="https://github.com/lutzroeder" target="_blank" rel="noopener noreferrer">Lutz Roeder</a>). The main selling point, the loss function, was chosen to avoid a weighting of classes. As previously mentioned the labels are (as usual) not well distributed. More than 75% of the >5000 labels (of ~2500 sequences) contained only 0,1 or 2 passengers. Luckily we can produce larger labels when concatenating sequences and therefore get larger counts. The drawback is the computational complexity when preparing batches and computing through the sequences.<br>
 Visual representation of the concatenation and a synthetic prediction is shown below. Since the bounding boxes are the only knowledge we have, we can't apply a loss as long as the prediction is inside the boundaries. Only if the model predicts values outside the valid range or for the last frame of each sequence, we can compute an error. For the last frame we calculate an absolute loss. These are the only losses that are applied that rely on the labels. Auxillary losses were introduced by myself in 2020 in this repository.
