@@ -24,7 +24,7 @@
         "optimizer_parameter": {"beta_1": 0.9, "beta_2": 0.999, "epsilon": 1e-07},
         "optimizer_clip_parameter": {"clipnorm": 1.0, "clipvalue": 2.0},
         "dropout_rate": 0.2,
-        "frame_stride": 4,
+        "frame_stride": 1,
         "accuracy_error_niveau": 0.5,
         "concatenation_length": 5,
         "calculation_dtype" : "float16",
