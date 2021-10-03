@@ -16,11 +16,11 @@ repos:
     hooks:
     -   id: black
 
--   repo: git://github.com/FalconSocial/pre-commit-mirrors-pep257
-    rev: v0.3.3
-    hooks:
-    -   id: pep257
-        args: ['--ignore=D100,D101,D102,D103,D105']
+#-   repo: git://github.com/FalconSocial/pre-commit-mirrors-pep257
+#    rev: v0.3.3
+#    hooks:
+#    -   id: pep257
+#        args: ['--ignore=D100,D101,D102,D103,D105']
 
 -   repo: https://github.com/kynan/nbstripout
     rev: 0.5.0
@@ -47,3 +47,12 @@ repos:
   hooks:
     - id: docformatter
       args: [--in-place]
+
+- repo: local
+  hooks:
+    - id: pylint
+      name: pylint
+      entry: pylint
+      language: system
+      types: [python]
+      args: [--fail-under=9]

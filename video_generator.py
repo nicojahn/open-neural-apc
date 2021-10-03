@@ -1,6 +1,23 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2020-2021, Nico Jahn
 # All rights reserved.
+# pylint: disable=missing-module-docstring
+import matplotlib
+import numpy as np
+from tqdm.notebook import tqdm
+from tqdm.notebook import trange
+
+# pylint: disable=wrong-import-position
+
+matplotlib.use("Agg")
+from matplotlib import animation
+from matplotlib.gridspec import GridSpec
+from matplotlib.ticker import MaxNLocator, MultipleLocator
+import matplotlib.pyplot as plt
+
+plt.minorticks_on()
+
+# pylint: enable=wrong-import-position
 
 
 def create_video(
@@ -14,21 +31,7 @@ def create_video(
     class_names,
     dpi=300,
     fps=10,
-):
-
-    import matplotlib
-    import numpy as np
-    from tqdm.notebook import trange
-
-    matplotlib.use("Agg")
-
-    import matplotlib.animation as animation
-    import matplotlib.pyplot as plt
-    from matplotlib.gridspec import GridSpec
-    from matplotlib.ticker import MaxNLocator, MultipleLocator
-
-    plt.minorticks_on()
-
+):  # pylint: disable=too-many-arguments
     # remove batch dimension if present
     sequence = np.squeeze(sequence)
     prediction = np.squeeze(prediction)
@@ -73,7 +76,7 @@ def create_video(
     # The image sequence on the right
     image = fig.add_subplot(grid[:, 9:])
     image.set_axis_off()
-    im = image.imshow(
+    img = image.imshow(
         input_video[0],
         interpolation="none",
         aspect="equal",
@@ -110,7 +113,7 @@ def create_video(
     axes[-1].legend()
 
     # disable x-axis for all plot but the last
-    for ax in axes[:-1]:
+    for ax in axes[:-1]:  # pylint: disable=invalid-name
         ax.get_xaxis().set_visible(False)
 
     lines = []
@@ -129,7 +132,7 @@ def create_video(
                 [0, k], [prediction[k, i], prediction[k, i]]
             )
             lines[num_classes * i + 1].set_data([k, k], [0, max_values[i] + 1])
-        im.set_array(input_video[k])
+        img.set_array(input_video[k])
         return lines
 
     # calling the animation function
@@ -156,10 +159,9 @@ def create_video(
     )
 
 
-def create_videos(x, y, predictions, epoch, video_idx_offset, class_names):
-    import numpy as np
-    import tensorflow as tf
-    from tqdm.notebook import tqdm, trange
+def create_videos(
+    x, y, predictions, epoch, video_idx_offset, class_names
+):  # pylint: disable=too-many-arguments, invalid-name
 
     # has to create the videos for every element
     for (sample_idx, prediction) in enumerate(

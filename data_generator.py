@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2020-2021, Nico Jahn
 # All rights reserved.
+# pylint: disable=missing-module-docstring, no-name-in-module
 import numpy as np
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.utils import Sequence
@@ -28,7 +29,8 @@ class DataGenerator(Sequence):
         indices = np.arange(self._num_sequences)
         if self._training:
             np.random.shuffle(indices)
-        # to handle the indices easier, i'm going to pad with -1 until we can reshape the indices properly and discard the -1 indices later
+        # to handle the indices easier, i'm going to pad with -1
+        # so we can reshape the indices properly and discard the -1 indices later
         max_sequences = self._num_batches * self._batch_size * self._concat_length
         indices_padding = -1 * np.ones(max_sequences - self._num_sequences)
         indices = np.append(indices, indices_padding)
@@ -53,7 +55,7 @@ class DataGenerator(Sequence):
         )
         # the upper bound (always equals labels) is already valid on the first frame
         # the lower bound is mostly 0, but for the last frame it's also the label
-        # i'm only setting one element, since when concatenated, we have to calculate the cumsum over the labels
+        # i'm only setting one element as we calculate the cumsum over the labels later on
         bound[0, : self._data.num_classes] = labels
         bound[-1, self._data.num_classes :] = labels
         return bound
@@ -70,11 +72,14 @@ class DataGenerator(Sequence):
             seq, maxlen=None, dtype=self._calculation_dtype, padding="post", value=-1.0
         )
 
-    def _combine_masks_batch(self, l_mask, a_mask):
-        # stacks the label mask (batch_size x sequence_length x 2*num_classes) and the accuracy mask (batch_size x sequence_length x 1)
+    @staticmethod
+    def _combine_masks_batch(l_mask, a_mask):
+        # stacks the label mask (batch_size x sequence_length x 2*num_classes)
+        # and the accuracy mask (batch_size x sequence_length x 1)
         return np.dstack([l_mask, a_mask])
 
-    def _batch_wrapper(self, batch, function):
+    @staticmethod
+    def _batch_wrapper(batch, function):
         batches = []
         # operating on a single batch element
         for indices in batch:
@@ -113,11 +118,13 @@ class DataGenerator(Sequence):
     def on_epoch_end(self):
         self._indices = self._prepare_indices()
 
-        # reverse left/right and forward/backward only during training (every epoch is a new permutation)
+        # reverse left/right and forward/backward only during training
+        # (every epoch is a new permutation)
         possible_permutations = 0
         if self._training:
             possible_permutations = 1
-        # this is the 'step' of the arrays (either 1 for no permutations or -1 for reversing a sequence)
+        # this is calculation of the 'step' of the array indices
+        # (either 1 for no permutations or -1 for reversing a sequence)
         self._permute = 1 - 2 * np.int32(
             (np.random.randint(0, possible_permutations + 1, (self._num_sequences, 2)))
         )

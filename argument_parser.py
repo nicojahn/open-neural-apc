@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2020-2021, Nico Jahn
 # All rights reserved.
+# pylint: disable=missing-module-docstring
 import argparse
+
+from utils import load_config
 
 
 # parsing default parameters
@@ -41,10 +44,15 @@ def overwrite_config(
                 training_parameter[argument] = arguments[argument]
 
 
-if __name__ == "__main__":
-    # example usage
-    from utils import load_config
+# example usage
+def main():
 
-    (_, model_parameter, training_parameter) = load_config(verbose=0)
+    (data_parameter, model_parameter, training_parameter) = load_config(verbose=0)
     (parsed_arguments, _) = parse_arguments()
-    overwrite_config(parsed_arguments, model_parameter, training_parameter)
+    overwrite_config(
+        parsed_arguments, data_parameter, model_parameter, training_parameter
+    )
+
+
+if __name__ == "__main__":
+    main()

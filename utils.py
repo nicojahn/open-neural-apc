@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2020-2021, Nico Jahn
 # All rights reserved.
+# pylint: disable=missing-module-docstring
+import json
+
+import tensorflow as tf
+
 # load model config
 def load_config(config_path="config.json", verbose=1):
-    import json
 
     with open(config_path, "r") as config_file:
         config_data = json.load(config_file)
@@ -21,7 +25,6 @@ def load_config(config_path="config.json", verbose=1):
 
 
 def allow_growth():
-    import tensorflow as tf
 
     # Copied from: https://tensorflow.google.cn/guide/gpu?hl=en#limiting_gpu_memory_growth
     gpus = tf.config.experimental.list_physical_devices("GPU")
@@ -29,5 +32,5 @@ def allow_growth():
         try:
             for gpu in gpus:
                 tf.config.experimental.set_memory_growth(gpu, True)
-        except RuntimeError as e:
+        except RuntimeError as e:  # pylint: disable=invalid-name
             print(e)

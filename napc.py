@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2020-2021, Nico Jahn
 # All rights reserved.
+# pylint: disable=no-name-in-module, line-too-long
 """Neural Network class with architecture and loss functions.
 
 The NeuralAPC class is aimed for the creation and restoration of the Neural Network. The main interfaces are the constructor and the compile(), save() and load_model() methods. The class is structured in 3 parts (top to bottom): The main interfaces, utility functions, the loss/metric functions.
@@ -17,32 +18,36 @@ The NeuralAPC class is aimed for the creation and restoration of the Neural Netw
   napc.load_model(10000, "models/")
   napc.compile()
 """
+# pylint: enable=line-too-long
 import datetime
 import os
 
 import numpy as np
 import tensorflow as tf
 import tensorflow.keras.backend as K
-from tensorflow import keras as keras
+from tensorflow import keras
+from tensorflow.compat.v1.keras.layers import CuDNNLSTM  # pylint: disable=import-error
+from tensorflow.keras import mixed_precision
 from tensorflow.keras.layers import Bidirectional
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import Dropout
 from tensorflow.keras.layers import InputLayer
 from tensorflow.keras.layers import LeakyReLU
+from tensorflow.keras.layers import LSTM
 from tensorflow.keras.layers import Reshape
 from tensorflow.keras.models import model_from_json
 
+from callbacks import IncreaseEpochCustom
+from callbacks import SaveEveryNthEpochCustom
+
 
 class NeuralAPC:
-    def __init__(self, *args, verbose=0, **kwargs):
+    def __init__(self, *args, verbose=0):
         (self._model_parameter, self._training_parameter) = args
         self._model_path = "./models/%s/" % str(datetime.datetime.now()).replace(
             " ", "_"
         )
         self._verbose = verbose
-
-        # Doing this on purpose. The old LSTM implementation was faster than the new one
-        self._v1RNN = self._training_parameter.get("v1RNN", False)
 
         # setting the precision to mixed if float16 is desired in training_parameter
         self._set_precision(
@@ -51,6 +56,7 @@ class NeuralAPC:
         )
 
         # assemble network
+        self._model = None
         self._create_model()
         self._add_input()
         self._add_core()
@@ -59,9 +65,6 @@ class NeuralAPC:
         if self._verbose:
             # print the model properties
             self._model.summary()
-
-        # Catching the: ValueError: Gradient clipping in the optimizer (by setting clipnorm or clipvalue) is currently unsupported when using a distribution strategy.
-        is_distributed = tf.distribute.in_cross_replica_context()
 
         # set an epoch
         self._epoch = 0
@@ -74,7 +77,6 @@ class NeuralAPC:
             clip_gradient
             and self._training_parameter["optimizer_clip_parameter"] is not None
             and not is_half_precision
-            and not is_distributed
         ):
             optimizer_clip_parameter = self._training_parameter[
                 "optimizer_clip_parameter"
@@ -87,8 +89,8 @@ class NeuralAPC:
         )
 
         # helper for the loss
-        self._TF_ZERO = K.cast(0.0, dtype=K.floatx())
-        self._TF_ONE = K.cast(1.0, dtype=K.floatx())
+        self._tf_zero = K.cast(0.0, dtype=K.floatx())
+        self._tf_one = K.cast(1.0, dtype=K.floatx())
         self._aux_scale = K.cast(
             self._training_parameter["aux_scale"], dtype=K.floatx()
         )
@@ -171,7 +173,6 @@ class NeuralAPC:
 
         # enable mixed precission
         if "float16" in calculation_dtype:
-            from tensorflow.keras import mixed_precision
 
             mixed_precision.set_global_policy("mixed_float16")
 
@@ -185,7 +186,8 @@ class NeuralAPC:
             )
         )
 
-    # input layer which is currently just a dense layer, therefore we have to flatten the input frames
+    # input layer is just a dense layer
+    # therefore we have to flatten the input frames
     def _add_input(self):
         self._model.add(
             Reshape(
@@ -204,18 +206,17 @@ class NeuralAPC:
 
     # the core network based on lstm
     def _add_core(self):
-        for idx in range(self._model_parameter["lstm_depth"]):
-            if self._v1RNN:
-                from tensorflow.compat.v1.keras.layers import CuDNNLSTM as LSTM
+        # Doing this on purpose. The old LSTM implementation was faster than the new one
+        v1rnn = self._training_parameter.get("v1RNN", False)
 
-                lstm = LSTM(
+        for idx in range(self._model_parameter["lstm_depth"]):
+            if v1rnn:
+                lstm = CuDNNLSTM(
                     units=self._model_parameter["lstm_width"],
                     return_sequences=True,
                     name="CoreLayer{idx}" % idx,
                 )
             else:
-                from tensorflow.keras.layers import LSTM
-
                 lstm = LSTM(
                     units=self._model_parameter["lstm_width"],
                     return_sequences=True,
@@ -243,7 +244,6 @@ class NeuralAPC:
         self._model.add(LeakyReLU(-1, name="OutputActivation"))
 
     def _add_callbacks(self):
-        from callbacks import IncreaseEpochCustom, SaveEveryNthEpochCustom
 
         self._callbacks += [IncreaseEpochCustom(self)]
         self._callbacks += [
@@ -282,35 +282,38 @@ class NeuralAPC:
         output_dimensions = tf.shape(y_pred)[2]
         upper_bound = K.cast(y_true[:, :, :output_dimensions], dtype=K.floatx())
 
-        mask = K.cast(K.greater_equal(upper_bound, self._TF_ZERO), dtype=K.floatx())
+        mask = K.cast(K.greater_equal(upper_bound, self._tf_zero), dtype=K.floatx())
         accuracy_mask = K.cast(y_true[:, :, 2 * output_dimensions :], dtype=K.floatx())
 
         # because the accuracy_mask is originally also padded with -1, we mask it
         accuracy_mask = mask * accuracy_mask
         error_with_slack = K.abs(y_pred - upper_bound) - self._slack
         error_with_slack = K.cast(
-            K.less_equal(error_with_slack, self._TF_ZERO), dtype=K.floatx()
+            K.less_equal(error_with_slack, self._tf_zero), dtype=K.floatx()
         )
         # number of right predicted sequences divided by count of sequences
         return K.sum(accuracy_mask * error_with_slack) / K.sum(accuracy_mask)
 
     @staticmethod
-    def _aux_losses(mask, prediction, TF_ZERO, TF_ONE):
-        # try to predict close to integer values (error = distance to closest integer)
+    def _aux_losses(mask, prediction, tf_zero, tf_one):
+        # try to predict close to integer values
+        # (error = distance to closest integer)
         integer_error = mask * (prediction - K.round(prediction))
 
-        # try to not change prediction too much through time (error = distance/change to previous prediction)
+        # try to not change prediction too much through time
+        # (error = distance/change to previous prediction)
         small_zero = K.zeros_like(prediction[:, :1, :])
         stabelize_change_forward = K.maximum(
-            TF_ZERO,
+            tf_zero,
             prediction - K.concatenate([prediction[:, 1:, :], small_zero], axis=1),
         )
         stabelize_change_backward = mask * K.concatenate(
             [small_zero, stabelize_change_forward[:, :-1, :]], axis=1
         )
 
-        # freeze your prediction, when shown constant -1 images(padding) (error = distance/change to last valid prediction)
-        inverted_mask = K.cast(K.less(mask, TF_ONE), dtype=K.floatx())
+        # hold prediction when input is a constant -1 filled image (padding)
+        # (error = distance/change to last valid prediction)
+        inverted_mask = K.cast(K.less(mask, tf_one), dtype=K.floatx())
         very_last_valid_frame = mask * K.concatenate(
             [inverted_mask[:, 1:, :], small_zero], axis=1
         )
@@ -330,12 +333,12 @@ class NeuralAPC:
         )
 
     def _calc_loss(self, upper_bound, lower_bound, prediction):
-        mask = K.cast(K.greater_equal(upper_bound, self._TF_ZERO), dtype=K.floatx())
+        mask = K.cast(K.greater_equal(upper_bound, self._tf_zero), dtype=K.floatx())
         # main error to the label (the predictions outside the bounding boxes)
         error = mask * (
-            K.maximum(self._TF_ZERO, prediction - upper_bound)
-            + K.minimum(self._TF_ZERO, prediction - lower_bound)
+            K.maximum(self._tf_zero, prediction - upper_bound)
+            + K.minimum(self._tf_zero, prediction - lower_bound)
         )
         # additional losses (independent from label)
-        aux_loss = self._aux_losses(mask, prediction, self._TF_ZERO, self._TF_ONE)
+        aux_loss = self._aux_losses(mask, prediction, self._tf_zero, self._tf_one)
         return K.abs(error) + K.mean(aux_loss, axis=0, keepdims=True) / self._aux_scale

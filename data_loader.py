@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2020-2021, Nico Jahn
 # All rights reserved.
+# pylint: disable=missing-module-docstring
+import h5py
 import numpy as np
 
 
@@ -11,6 +13,7 @@ class DataLoader:
         self._sequences = _mmap_h5(data_fname, f"/{mode}/sequences")
         self._labels = _mmap_h5(data_fname, f"/{mode}/labels")
         self._lengths = _mmap_h5(data_fname, f"/{mode}/lengths")
+        self._file_names = _mmap_h5(data_fname, f"/{mode}/file_names")
 
         self._num_classes = np.shape(self._labels)[1]
 
@@ -25,6 +28,9 @@ class DataLoader:
     def get_length(self, idx):
         return np.ceil(self._lengths[idx] / self._frame_stride).astype(np.int32)
 
+    def get_file_name(self, idx):
+        return self._file_names[idx]
+
     @property
     def num_classes(self):
         return self._num_classes
@@ -34,24 +40,21 @@ class DataLoader:
 
 
 # Copied from Cyrille Rossants HDF5 benchmark: https://gist.github.com/rossant/7b4704e8caeb8f173084
-import h5py
-
-
 def _mmap_h5(path, h5path):
-    with h5py.File(path, "r") as f:
+    with h5py.File(path, "r") as h5file:
         # check if the h5path exists
-        assert h5path in f.keys()
-        ds = f[h5path]
+        assert h5path in h5file.keys()
+        dataset = h5file[h5path]
         # We get the dataset address in the HDF5 file.
-        offset = ds.id.get_offset()
-        dtype = ds.dtype
-        shape = ds.shape
+        offset = dataset.id.get_offset()
+        dtype = dataset.dtype
+        shape = dataset.shape
         # return None if dataset is empty (offset is None)
         if offset is None:
             return np.ndarray(shape, dtype=dtype)
         # We ensure we have a non-compressed contiguous array.
-        assert ds.chunks is None
-        assert ds.compression is None
+        assert dataset.chunks is None
+        assert dataset.compression is None
         assert offset > 0
     arr = np.memmap(path, mode="r", shape=shape, offset=offset, dtype=dtype)
     return arr
