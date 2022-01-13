@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Jahn"
+  given-names: "Nico"
+  orcid: "https://orcid.org/0000-0001-6452-7985"
+title: "Neural APC"
+version: 1.0
+date-released: 2021-12-30
+url: "https://github.com/nicojahn/open-neural-apc"
+preferred-citation:
+  type: article
+  authors:
+  - family-names: "Seidel"
+    given-names: "Robert"
+    orcid: "https://orcid.org/0000-0002-3075-2153"
+  - family-names: "Jahn"
+    given-names: "Nico"
+    orcid: "https://orcid.org/0000-0001-6452-7985"
+  - family-names: "Seo"
+    given-names: "Sambu"
+  - family-names: "Goerttler"
+    given-names: "Thomas"
+    orcid: "https://orcid.org/0000-0002-1437-0235"
+  - family-names: "Obermayer"
+    given-names: "Klaus"
+  doi: 10.1109/OJITS.2021.3139393
+  journal: "IEEE Open Journal of Intelligent Transportation Systems"
+  month: 12
+  start: 1
+  end: 1
+  title: "NAPC: A Neural Algorithm for Automated Passenger Counting in Public Transport on a Privacy-Friendly Dataset"
+  year: 2021
