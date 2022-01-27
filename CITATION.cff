@@ -19,15 +19,17 @@ preferred-citation:
     orcid: "https://orcid.org/0000-0001-6452-7985"
   - family-names: "Seo"
     given-names: "Sambu"
+    orcid: "https://orcid.org/0000-0001-9344-6690"
   - family-names: "Goerttler"
     given-names: "Thomas"
     orcid: "https://orcid.org/0000-0002-1437-0235"
   - family-names: "Obermayer"
     given-names: "Klaus"
+    orcid: "https://orcid.org/0000-0002-5057-6142"
   doi: 10.1109/OJITS.2021.3139393
   journal: "IEEE Open Journal of Intelligent Transportation Systems"
-  month: 12
-  start: 1
-  end: 1
+  start: 33
+  end: 44
+  volume: 3
   title: "NAPC: A Neural Algorithm for Automated Passenger Counting in Public Transport on a Privacy-Friendly Dataset"
-  year: 2021
+  year: 2022
